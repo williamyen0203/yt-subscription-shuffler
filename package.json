@@ -1,0 +1,9 @@
+{
+  "name": "yt-random-subscription",
+  "version": "1.0.0",
+  "description": "Play a random video from your YouTube subscriptions",
+  "main": "index.js",
+  "repository": "https://github.com/williamyen0203/yt-random-subscription",
+  "author": "Will Yen",
+  "license": "MIT"
+}
