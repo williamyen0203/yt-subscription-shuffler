@@ -69,13 +69,26 @@
       GoogleAuth.disconnect();
     }
 
-    function callApi() {
+    async function callApi() {
+      subscriptionsList = [];
+      nextPageToken = null;
 
-      gapi.client.request({
-        'path': 'https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&channelId=UC4F4StdLJ3_HasGf774ZFrA'
-      }).then((data) => {
-        console.log(data);
-      });
+      do {
+        console.log("subscriptionListSize: " + subscriptionsList.length);
+        data = await gapi.client.request({
+          'path': "https://www.googleapis.com/youtube/v3/subscriptions?" +
+          "part=snippet" +
+          "&mine=true" +
+          "&maxResults=50" +
+          (nextPageToken == null ? "" : "&pageToken=" + nextPageToken)
+        })
+
+        nextPageToken = data.result.nextPageToken
+        subscriptions = data.result.items.map(item => item.snippet.title);
+        subscriptionsList = subscriptionsList.concat(data.result.items.map(item => item.snippet.title));
+      } while (nextPageToken != null)
+      
+      $('#results').text(JSON.stringify(subscriptionsList));
     }
   
     function setSigninStatus() {
@@ -101,18 +114,51 @@
     }
   </script>
   
-  <button id="sign-in-or-out-button"
-          style="margin-left: 25px">Sign In/Authorize</button>
-  <button id="revoke-access-button"
-          style="display: none; margin-left: 25px">Revoke access</button>
+  <button id="sign-in-or-out-button">Sign In/Authorize</button>
+  <button id="revoke-access-button">Revoke access</button>
 
-  <button id="call-api" style="display: none; margin-left: 25px">Call API</button>
+  <button id="call-api">Call API</button>
   
-  <div id="auth-status" style="display: inline; padding-left: 25px"></div><hr>
+  <div id="auth-status"></div><hr>
+
+  <pre id="results"></pre>
+
+  <pre id="output"></pre>
   
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script async defer src="https://apis.google.com/js/api.js"
           onload="this.onload=function(){};handleClientLoad()"
           onreadystatechange="if (this.readyState === 'complete') this.onload()">
   </script>
+
+  <style>
+    #sign-in-or-out-button {
+      margin-left: 25px;
+    }
+
+    #revoke-access-button {
+      display: none;
+      margin-left: 25px;
+    }
+
+    #call-api {
+      display: none;
+      margin-left: 25px;
+    }
+
+    #auth-status {
+      display: inline;
+      margin-left: 25px;
+    }
+    
+    #results {
+      white-space: pre-line;
+      background-color: rgb(189, 189, 189);
+    }
+    
+    #output {
+      white-space: pre-line;
+      background-color: rgb(139, 139, 139);
+    }
+  </style>
 </body>
