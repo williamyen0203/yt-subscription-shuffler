@@ -115,6 +115,17 @@
       // pick random video
       const videoIdsAsArray = Array.from(videoIdToTitleMap.keys());
       const randomVideoId = videoIdsAsArray[Math.floor(Math.random() * videoIdsAsArray.length)];
+
+      // show video
+      const videoData = await gapi.client.request({
+        'path': "https://www.googleapis.com/youtube/v3/videos?" +
+        "part=player" +
+        "&maxHeight=800" +
+        "&id=" + randomVideoId +
+        (nextPageToken == null ? "" : "&pageToken=" + nextPageToken)
+      });
+      const embedHtml = videoData.result.items[0].player.embedHtml;
+      $('#yt-embed').append(embedHtml);
       
       $('#num-channels').text(subscriptionIdToNameMap.size);
       $('#num-videos').text(videoIdToTitleMap.size);
@@ -154,6 +165,8 @@
 
   <h2>Picking random video from <span id="num-channels">...</span> channels: <span id="channel-name">...</span></h2>
   <h2>Picking random video from channel with <span id="num-videos">...</span> videos: <span id="now-playing">...</span></h2>
+
+  <div id="yt-embed"></div>
   
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script async defer src="https://apis.google.com/js/api.js"
