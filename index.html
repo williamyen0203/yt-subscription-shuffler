@@ -70,12 +70,12 @@
     }
 
     async function callApi() {
-      subscriptionsList = [];
-      nextPageToken = null;
+      let subscriptionIdToNameMap = new Map();
+      let nextPageToken = null;
 
+      // get all subscriptions
       do {
-        console.log("subscriptionListSize: " + subscriptionsList.length);
-        data = await gapi.client.request({
+        subscriptionData = await gapi.client.request({
           'path': "https://www.googleapis.com/youtube/v3/subscriptions?" +
           "part=snippet" +
           "&mine=true" +
@@ -83,12 +83,43 @@
           (nextPageToken == null ? "" : "&pageToken=" + nextPageToken)
         })
 
-        nextPageToken = data.result.nextPageToken
-        subscriptions = data.result.items.map(item => item.snippet.title);
-        subscriptionsList = subscriptionsList.concat(data.result.items.map(item => item.snippet.title));
+        nextPageToken = subscriptionData.result.nextPageToken;
+        subscriptions = subscriptionData.result.items.forEach(item => {
+          subscriptionIdToNameMap.set(item.snippet.resourceId.channelId, item.snippet.title)
+        });
       } while (nextPageToken != null)
+
+      // pick random channel
+      const subscriptionIdsAsArray = Array.from(subscriptionIdToNameMap.keys())
+      const randomSubscriptionId = subscriptionIdsAsArray[Math.floor(Math.random() * subscriptionIdsAsArray.length)];
+
+      // get videos from channel
+      let videoIdToTitleMap = new Map();
+      do {
+        const searchData = await gapi.client.request({
+          'path': "https://www.googleapis.com/youtube/v3/search?" +
+          "part=id,snippet" +
+          "&maxResults=50" +
+          "&order=date" +
+          "&type=video" +
+          "&channelId=" + randomSubscriptionId +
+          (nextPageToken == null ? "" : "&pageToken=" + nextPageToken)
+        });
+
+        nextPageToken = searchData.result.nextPageToken;
+        searchData.result.items.forEach(item => {
+          videoIdToTitleMap.set(item.id.videoId, item.snippet.title);
+        });
+      } while (nextPageToken != null)
+
+      // pick random video
+      const videoIdsAsArray = Array.from(videoIdToTitleMap.keys());
+      const randomVideoId = videoIdsAsArray[Math.floor(Math.random() * videoIdsAsArray.length)];
       
-      $('#results').text(JSON.stringify(subscriptionsList));
+      $('#num-channels').text(subscriptionIdToNameMap.size);
+      $('#num-videos').text(videoIdToTitleMap.size);
+      $('#now-playing').text(videoIdToTitleMap.get(randomVideoId));
+      $('#channel-name').text(subscriptionIdToNameMap.get(randomSubscriptionId));
     }
   
     function setSigninStatus() {
@@ -121,9 +152,8 @@
   
   <div id="auth-status"></div><hr>
 
-  <pre id="results"></pre>
-
-  <pre id="output"></pre>
+  <h2>Picking random video from <span id="num-channels">...</span> channels: <span id="channel-name">...</span></h2>
+  <h2>Picking random video from channel with <span id="num-videos">...</span> videos: <span id="now-playing">...</span></h2>
   
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script async defer src="https://apis.google.com/js/api.js"
