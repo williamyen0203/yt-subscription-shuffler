@@ -1,4 +1,4 @@
-# Youtube Subscription Randomizer
+# Youtube Subscription Shuffler
 
 # How to run
 
