@@ -8,10 +8,6 @@ interface AppState {}
 
 var SCOPE = "https://www.googleapis.com/auth/youtube.readonly";
 
-const API_KEY = "DO_NOT_COMMIT";
-const CLIENT_ID = "DO_NOT_COMMIT";
-const CLIENT_SECRET = "DO_NOT_COMMIT";
-
 function App(props: AppProps, state: AppState) {
   var GoogleAuth: any;
 
@@ -43,8 +39,8 @@ function App(props: AppProps, state: AppState) {
     // 'scope' field specifies space-delimited list of access scopes.
     gapi.client
       .init({
-        apiKey: API_KEY,
-        clientId: CLIENT_ID,
+        apiKey: import.meta.env.VITE_API_KEY,
+        clientId: import.meta.env.VITE_CLIENT_ID,
         discoveryDocs: [discoveryUrl],
         scope: SCOPE,
         plugin_name: "yt-subscription-shuffler",
