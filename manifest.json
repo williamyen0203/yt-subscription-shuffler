@@ -3,6 +3,7 @@
     "name": "Youtube Subscription Shuffler",
     "description": "Randomly pick a video from your subscriptions",
     "version": "1.0",
+    "content_security_policy": "script-src https://ajax.googleapis.com;",
     "action": {
         "default_popup": "index.html",
         "default_icon": "icon/icon.png"

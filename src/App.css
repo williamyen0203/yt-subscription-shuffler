@@ -1,0 +1,16 @@
+#sign-in-or-out-button {
+  margin-left: 25px;
+}
+
+#revoke-access-button {
+  margin-left: 25px;
+}
+
+#call-api {
+  margin-left: 25px;
+}
+
+#auth-status {
+  display: inline;
+  margin-left: 25px;
+}
