@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    @apply bg-gray-200;
+}
+
+#sign-in-or-out-button {
+    margin-left: 25px;
+  }
+  
+  #revoke-access-button {
+    margin-left: 25px;
+  }
+  
+  #call-api {
+    margin-left: 25px;
+  }
+  
+  #auth-status {
+    display: inline;
+    margin-left: 25px;
+  }
