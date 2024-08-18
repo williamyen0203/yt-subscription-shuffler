@@ -1,7 +1,7 @@
 import browser from "@src/__mocks__/webextension-polyfill";
 import React from "react";
 import { Tabs } from "webextension-polyfill";
-import css from "./styles.module.css";
+import scrollerStyles from "./scrollerStyles.module.css";
 
 // Scripts to execute in current tab
 const scrollToTopPosition = 0;
@@ -54,14 +54,14 @@ export function ScrollerComponent() {
     return (
         <div className="grid gap-3 grid-cols-2 mt-3 w-full">
             <button
-                className={css.btn}
+                className={scrollerStyles.btn}
                 data-testid="scroll-to-top"
                 onClick={() => onClickScrollTop()}
             >
                 Scroll To Top
             </button>
             <button
-                className={css.btn}
+                className={scrollerStyles.btn}
                 data-testid="scroll-to-bottom"
                 onClick={() => onClickScrollBottom()}
             >

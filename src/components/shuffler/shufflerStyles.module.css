@@ -1,0 +1,16 @@
+.signInOrOutButton {
+    margin-left: 25px;
+}
+
+.revokeAccessButton {
+    margin-left: 25px;
+}
+
+.callApi {
+    margin-left: 25px;
+}
+
+.authStatus {
+    display: inline;
+    margin-left: 25px;
+}

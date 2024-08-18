@@ -1,8 +1,8 @@
 import * as React from "react";
-import { Popup } from "../Popup";
+import { App } from "../App";
 import renderer from "react-test-renderer";
 
 it("component renders", () => {
-    const tree = renderer.create(<Popup />).toJSON();
+    const tree = renderer.create(<App />).toJSON();
     expect(tree).toMatchSnapshot();
 });

@@ -1,10 +1,10 @@
 import React from "react";
-// import { ShufflerComponent } from "@src/components/shuffler";
 import browser from "webextension-polyfill";
-import { ScrollerComponent } from "@src/components/scroller";
-import css from "./styles.module.css";
+import { ScrollerComponent } from "../scroller/ScrollerComponent";
+import { ShufflerComponent } from "../shuffler/ShufflerComponent";
+import appStyles from "./appStyles.module.css";
 
-export function Popup() {
+export function App() {
     // Sends the `popupMounted` event
     React.useEffect(() => {
         browser.runtime.sendMessage({ popupMounted: true });
@@ -12,9 +12,9 @@ export function Popup() {
 
     // Renders the component tree
     return (
-        <div className={css.popupContainer}>
+        <div className={appStyles.popupContainer}>
             <div className="mx-4 my-4">
-                {/* <Shuffler /> */}
+                {/* <ShufflerComponent /> */}
                 <hr />
                 <ScrollerComponent />
             </div>
