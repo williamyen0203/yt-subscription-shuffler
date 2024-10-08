@@ -4,7 +4,10 @@
     "description": "Play a random video from your list of subscriptions",
     "version": "0.1.0",
     "action": {
-        "default_icon": "icon.png",
+        "default_icon": {
+            "128": "icon/icon128.png",
+            "512": "icon/icon512.png"
+        },
         "default_popup": "popup.html"
     },
     "background": {
@@ -13,10 +16,15 @@
     "host_permissions": [
         "https:\/\/*/*"
     ],
+    "oauth2": {
+        "client_id": "748985382262-nss135jqs3ve8ubfqegsrcm55nbah29s.apps.googleusercontent.com",
+        "scopes": [
+            "https://www.googleapis.com/auth/youtube.readonly"
+        ]
+    },
     "permissions": [
-        "tabs",
-        "activeTab",
-        "notifications",
-        "scripting"
-    ]
+        "identity",
+        "identity.email"
+    ],
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4xyM04GaByD+NXJw4nKJyaLRsQ89Bf013Z7EIekwmqqxa13sp3wmOnIIgj6PM3q7IyT1N4UldgHfKEMlZ2KrOzAoLzxj/zrdTMJ/Wlxx0Lhb3HrNzah2RQiiwg1nD1gfacoiTGXuvFdCgaZlbmLb9C4+xMA5x/ILuF8D0HP+Iwyb/IqjxEQw/ZDA0WLlhET1zOnag9RaSxBeq7P5EZIfsSpeZp2CyI4b0sVhXiraRuHUHQAs52NRI9OisQKis0SMxemPKGXOpC0WfK/bCxEXhZNcS2Gnz6328GXZcOR5WAJUb4V8KWHEoa+lA7rixXW1K7L92vPea1oHoqBDXFA4HQIDAQAB"
 }

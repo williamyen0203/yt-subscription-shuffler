@@ -1,13 +1,14 @@
 import React from "react";
 import shufflerStyles from "./shufflerStyles.module.css";
-// import { gapi } from "gapi-script";
-import { google } from "googleapis";
 import { useEffect, useState } from "react";
 
-var SCOPE = "https://www.googleapis.com/auth/youtube.readonly";
-
 export function ShufflerComponent() {
-    // var GoogleAuth: any;
+    const [error, setError] = useState<string>();
+    const [user, setUser] = useState<string>();
+    const [token, setToken] = useState<string>("");
+    const [subscriptions, setSubscriptions] = useState<
+        GoogleApiYouTubeSubscriptionResource[]
+    >([]);
 
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -23,61 +24,75 @@ export function ShufflerComponent() {
     );
     const [randomVideoId, setRandomVideoId] = useState("");
 
-    useEffect(() => {
-        // initGoogleApi();
-        // gapi.load("client:auth2", initClient);
-    }, []);
+    useEffect(() => {}, []);
 
-    const initGoogleApi = () => {
-        const auth = new google.auth.GoogleAuth({
-            keyFilename: "serviceAccountKey.json",
-            scopes: [SCOPE],
+    const onAuthClick = () => {
+        chrome.identity.getAuthToken({ interactive: true }, (token) => {
+            if (chrome.runtime.lastError) {
+                setError(chrome.runtime.lastError.message);
+                return;
+            }
+            setToken(token);
+
+            chrome.identity.getProfileUserInfo(
+                (userInfo: chrome.identity.UserInfo) => {
+                    setUser(userInfo.email);
+                },
+            );
         });
     };
 
-    // const initClient = () => {
-    //     // In practice, your app can retrieve one or more discovery documents.
-    //     var discoveryUrl =
-    //         "https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest";
-
-    //     // Initialize the gapi.client object, which app uses to make API requests.
-    //     // Get API key and client ID from API Console.
-    //     // 'scope' field specifies space-delimited list of access scopes.
-    //     gapi.client
-    //         .init({
-    //             apiKey: "***REMOVED***",
-    //             clientId:
-    //                 "748985382262-gqps16h4mpu3a0l6ujb3oan0mgjg6rpp.apps.googleusercontent.com",
-    //             discoveryDocs: [discoveryUrl],
-    //             scope: SCOPE,
-    //             plugin_name: "yt-subscription-shuffler",
-    //         })
-    //         .then(() => {
-    //             GoogleAuth = gapi.auth2.getAuthInstance();
-
-    //             // Listen for sign-in state changes.
-    //             GoogleAuth.isSignedIn.listen(setSigninStatus);
-
-    //             // Handle initial sign-in state. (Determine if user is already signed in.)
-    //             setSigninStatus();
-    //         });
-    // };
-
-    const handleAuthClick = () => {
-        // if (GoogleAuth.isSignedIn.get()) {
-        //     GoogleAuth.signOut();
-        // } else {
-        //     GoogleAuth.signIn();
-        // }
+    const onSignOutClick = () => {
+        chrome.identity.removeCachedAuthToken({ token: token }, () => {
+            if (chrome.runtime.lastError) {
+                setError(chrome.runtime.lastError.message);
+            }
+        });
     };
 
-    const revokeAccess = () => {
-        // GoogleAuth.disconnect();
+    const onFetchSubscriptionsClick = () => {
+        fetchSubscriptions(token).then((subscriptions) => {
+            setSubscriptions(subscriptions);
+        });
     };
 
-    const setSigninStatus = () => {
-        // var user = GoogleAuth.currentUser.get();
-        // setIsLoggedIn(user.hasGrantedScopes(SCOPE));
+    const fetchSubscriptions = (
+        token: string,
+        pageToken?: string,
+    ): Promise<GoogleApiYouTubeSubscriptionResource[]> => {
+        let url =
+            "https://content-youtube.googleapis.com/youtube/v3/subscriptions?" +
+            "part=snippet" +
+            "&mine=true" +
+            "&maxResults=50";
+        if (pageToken) {
+            url += "&pageToken=" + pageToken;
+        }
+        return fetch(url, {
+            method: "GET",
+            headers: new Headers({
+                Authorization: "Bearer " + token,
+                Accept: "application/json",
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    setError("Error calling youtube/v3/subscriptions API");
+                    return [];
+                }
+                return response.json();
+            })
+            .then(
+                (
+                    data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>,
+                ) => {
+                    return data.items;
+                },
+            )
+            .catch((error) => {
+                setError(error);
+                return [];
+            });
     };
 
     const callApi = async () => {
@@ -154,30 +169,43 @@ export function ShufflerComponent() {
         <>
             <h1>Youtube Subscription Shuffler</h1>
 
-            {!isLoggedIn && (
-                <button
-                    className={shufflerStyles.signInOrOutButton}
-                    onClick={handleAuthClick}
-                >
-                    Sign In/Authorize
-                </button>
-            )}
-            {isLoggedIn && (
-                <button
-                    className={shufflerStyles.revokeAccessButton}
-                    onClick={revokeAccess}
-                >
-                    Revoke access
-                </button>
+            {/* TODO: Clear out error */}
+            {error && (
+                <>
+                    <b>Error: </b> {error}
+                </>
             )}
 
-            {isLoggedIn && (
-                <button className={shufflerStyles.callApi} onClick={callApi}>
-                    Call API
-                </button>
+            {/* Logged in */}
+            {user && (
+                <>
+                    <div>
+                        <div>Logged in as {user}</div>
+                        <button onClick={onSignOutClick}>Sign out</button>
+                    </div>
+                    <ol>
+                        <button onClick={onFetchSubscriptionsClick}>
+                            Fetch subscriptions
+                        </button>
+                        {subscriptions.map(
+                            (
+                                subscription: GoogleApiYouTubeSubscriptionResource,
+                            ) => {
+                                return <li>{subscription.snippet.title}</li>;
+                            },
+                        )}
+                    </ol>
+                </>
             )}
 
-            <div className={shufflerStyles.authStatus}>
+            {/* Not logged in */}
+            {!user && (
+                <>
+                    <button onClick={onAuthClick}>Login</button>
+                </>
+            )}
+
+            {/* <div className={shufflerStyles.authStatus}>
                 {isLoggedIn
                     ? "You are currently signed in and have granted access to this app."
                     : "You have not authorized this app or you are signed out."}
@@ -197,7 +225,7 @@ export function ShufflerComponent() {
                 height="600"
                 width="800"
                 src={"https://www.youtube.com/embed/" + randomVideoId}
-            ></iframe>
+            ></iframe> */}
         </>
     );
 }
