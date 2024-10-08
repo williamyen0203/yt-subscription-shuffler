@@ -1,6 +1,7 @@
 import React from "react";
 import shufflerStyles from "./shufflerStyles.module.css";
 import { useEffect, useState } from "react";
+import { GoogleApiClient } from "../googleapi/GoogleApiClient";
 
 export function ShufflerComponent() {
     const [error, setError] = useState<string>();
@@ -24,74 +25,48 @@ export function ShufflerComponent() {
     );
     const [randomVideoId, setRandomVideoId] = useState("");
 
+    const gapiClient = new GoogleApiClient();
+
     useEffect(() => {}, []);
 
-    const onAuthClick = () => {
-        chrome.identity.getAuthToken({ interactive: true }, (token) => {
-            if (chrome.runtime.lastError) {
-                setError(chrome.runtime.lastError.message);
-                return;
-            }
-            setToken(token);
-
-            chrome.identity.getProfileUserInfo(
-                (userInfo: chrome.identity.UserInfo) => {
-                    setUser(userInfo.email);
-                },
-            );
-        });
+    const onAuthClick = async () => {
+        gapiClient
+            .authenticate()
+            .then((token) => {
+                setToken(token);
+            })
+            .catch((error) => {
+                setError(error.message);
+            });
+        gapiClient
+            .getSignedInUserEmail()
+            .then((email) => {
+                setUser(email);
+            })
+            .catch((error) => {
+                setError(error.message);
+            });
     };
 
     const onSignOutClick = () => {
-        chrome.identity.removeCachedAuthToken({ token: token }, () => {
-            if (chrome.runtime.lastError) {
-                setError(chrome.runtime.lastError.message);
-            }
-        });
+        gapiClient
+            .signOut(token)
+            .then(() => {
+                setUser(undefined);
+            })
+            .catch((error) => {
+                setError(error.message);
+            });
     };
 
     const onFetchSubscriptionsClick = () => {
-        fetchSubscriptions(token).then((subscriptions) => {
-            setSubscriptions(subscriptions);
-        });
-    };
-
-    const fetchSubscriptions = (
-        token: string,
-        pageToken?: string,
-    ): Promise<GoogleApiYouTubeSubscriptionResource[]> => {
-        let url =
-            "https://content-youtube.googleapis.com/youtube/v3/subscriptions?" +
-            "part=snippet" +
-            "&mine=true" +
-            "&maxResults=50";
-        if (pageToken) {
-            url += "&pageToken=" + pageToken;
-        }
-        return fetch(url, {
-            method: "GET",
-            headers: new Headers({
-                Authorization: "Bearer " + token,
-                Accept: "application/json",
-            }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    setError("Error calling youtube/v3/subscriptions API");
-                    return [];
-                }
-                return response.json();
+        gapiClient
+            .fetchSubscriptions(token)
+            .then((subscriptions) => {
+                setSubscriptions(subscriptions);
             })
-            .then(
-                (
-                    data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>,
-                ) => {
-                    return data.items;
-                },
-            )
             .catch((error) => {
-                setError(error);
-                return [];
+                setError(error.message);
             });
     };
 
@@ -190,8 +165,13 @@ export function ShufflerComponent() {
                         {subscriptions.map(
                             (
                                 subscription: GoogleApiYouTubeSubscriptionResource,
+                                i: number,
                             ) => {
-                                return <li>{subscription.snippet.title}</li>;
+                                return (
+                                    <li key={`subscription-${i}`}>
+                                        {subscription.snippet.title}
+                                    </li>
+                                );
                             },
                         )}
                     </ol>

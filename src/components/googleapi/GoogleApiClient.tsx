@@ -1,0 +1,79 @@
+export class GoogleApiClient {
+    fetchSubscriptions = async (
+        token: string,
+        pageToken?: string,
+    ): Promise<GoogleApiYouTubeSubscriptionResource[]> => {
+        let url =
+            "https://content-youtube.googleapis.com/youtube/v3/subscriptions?" +
+            "part=snippet" +
+            "&mine=true" +
+            "&maxResults=50";
+        if (pageToken) {
+            url += "&pageToken=" + pageToken;
+        }
+
+        return fetch(url, {
+            method: "GET",
+            headers: new Headers({
+                Authorization: "Bearer " + token,
+                Accept: "application/json",
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(
+                        "Error calling youtube/v3/subscriptions API",
+                    );
+                }
+                return response.json();
+            })
+            .then(
+                (
+                    data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>,
+                ) => {
+                    return data.items;
+                },
+            )
+            .catch((error) => {
+                throw error;
+            });
+    };
+
+    authenticate = (): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            chrome.identity.getAuthToken({ interactive: true }, (token) => {
+                if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                } else {
+                    resolve(token);
+                }
+            });
+        });
+    };
+
+    getSignedInUserEmail = (): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            chrome.identity.getProfileUserInfo(
+                (userInfo: chrome.identity.UserInfo) => {
+                    if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                    } else {
+                        resolve(userInfo.email);
+                    }
+                },
+            );
+        });
+    };
+
+    signOut = (token: string): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            chrome.identity.removeCachedAuthToken({ token: token }, () => {
+                if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                } else {
+                    resolve();
+                }
+            });
+        });
+    };
+}
