@@ -1,8 +1,13 @@
+export interface FetchSubscriptionsResponse {
+    subscriptions: GoogleApiYouTubeSubscriptionResource[];
+    nextPageToken: string;
+}
+
 export class GoogleApiClient {
     fetchSubscriptions = async (
         token: string,
-        pageToken?: string,
-    ): Promise<GoogleApiYouTubeSubscriptionResource[]> => {
+        pageToken?: string | null,
+    ): Promise<FetchSubscriptionsResponse> => {
         let url =
             "https://content-youtube.googleapis.com/youtube/v3/subscriptions?" +
             "part=snippet" +
@@ -31,7 +36,10 @@ export class GoogleApiClient {
                 (
                     data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>,
                 ) => {
-                    return data.items;
+                    return {
+                        subscriptions: data.items,
+                        nextPageToken: data.nextPageToken,
+                    };
                 },
             )
             .catch((error) => {

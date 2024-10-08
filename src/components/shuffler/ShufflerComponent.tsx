@@ -11,8 +11,6 @@ export function ShufflerComponent() {
         GoogleApiYouTubeSubscriptionResource[]
     >([]);
 
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-
     // fetched subscriptions
     const [subscriptionIdToNameMap, setSubscriptionIdToNameMap] = useState(
         new Map<string, string>(),
@@ -59,15 +57,23 @@ export function ShufflerComponent() {
             });
     };
 
-    const onFetchSubscriptionsClick = () => {
-        gapiClient
-            .fetchSubscriptions(token)
-            .then((subscriptions) => {
-                setSubscriptions(subscriptions);
-            })
-            .catch((error) => {
-                setError(error.message);
-            });
+    const onFetchSubscriptionsClick = async () => {
+        let nextPageToken = null;
+        do {
+            const response = await gapiClient.fetchSubscriptions(
+                token,
+                nextPageToken,
+            );
+            setSubscriptions((prevSubscriptions) =>
+                prevSubscriptions.concat(response.subscriptions),
+            );
+            nextPageToken = response.nextPageToken;
+        } while (nextPageToken != null);
+    };
+
+    const onRandomVideoClick = () => {
+        const randomSubscription =
+            subscriptions[Math.floor(Math.random() * subscriptions.length)];
     };
 
     const callApi = async () => {
@@ -161,6 +167,10 @@ export function ShufflerComponent() {
                     <ol>
                         <button onClick={onFetchSubscriptionsClick}>
                             Fetch subscriptions
+                        </button>
+
+                        <button onClick={onRandomVideoClick}>
+                            Random video
                         </button>
                         {subscriptions.map(
                             (
