@@ -3,50 +3,12 @@ export interface FetchSubscriptionsResponse {
     nextPageToken: string;
 }
 
+export interface FetchSearchResultsResponse {
+    searchResults: GoogleApiYouTubeSearchResource[];
+    nextPageToken: string;
+}
+
 export class GoogleApiClient {
-    fetchSubscriptions = async (
-        token: string,
-        pageToken?: string | null,
-    ): Promise<FetchSubscriptionsResponse> => {
-        let url =
-            "https://content-youtube.googleapis.com/youtube/v3/subscriptions?" +
-            "part=snippet" +
-            "&mine=true" +
-            "&maxResults=50";
-        if (pageToken) {
-            url += "&pageToken=" + pageToken;
-        }
-
-        return fetch(url, {
-            method: "GET",
-            headers: new Headers({
-                Authorization: "Bearer " + token,
-                Accept: "application/json",
-            }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(
-                        "Error calling youtube/v3/subscriptions API",
-                    );
-                }
-                return response.json();
-            })
-            .then(
-                (
-                    data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>,
-                ) => {
-                    return {
-                        subscriptions: data.items,
-                        nextPageToken: data.nextPageToken,
-                    };
-                },
-            )
-            .catch((error) => {
-                throw error;
-            });
-    };
-
     authenticate = (): Promise<string> => {
         return new Promise((resolve, reject) => {
             chrome.identity.getAuthToken({ interactive: true }, (token) => {
@@ -83,5 +45,89 @@ export class GoogleApiClient {
                 }
             });
         });
+    };
+
+    fetchSubscriptions = async (
+        token: string,
+        pageToken?: string | null,
+    ): Promise<FetchSubscriptionsResponse> => {
+        let url =
+            `https://content-youtube.googleapis.com/youtube/v3/subscriptions?` +
+            `part=snippet` +
+            `&mine=true` +
+            `&maxResults=50` +
+            `${pageToken ? `&pageToken=${pageToken}` : ""}`;
+
+        return fetch(url, {
+            method: "GET",
+            headers: new Headers({
+                Authorization: "Bearer " + token,
+                Accept: "application/json",
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(
+                        `Error calling youtube/v3/subscriptions API: ${response.status} response`,
+                    );
+                }
+                return response.json();
+            })
+            .then(
+                (
+                    data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>,
+                ) => {
+                    return {
+                        subscriptions: data.items,
+                        nextPageToken: data.nextPageToken,
+                    };
+                },
+            )
+            .catch((error) => {
+                throw error;
+            });
+    };
+
+    fetchVideos = async (
+        token: string,
+        channelId: string,
+        pageToken?: string | null,
+    ): Promise<FetchSearchResultsResponse> => {
+        let url =
+            `https://youtube.googleapis.com/youtube/v3/search?` +
+            `part=snippet` +
+            `&channelId=${channelId}` +
+            `&type=video` +
+            `&maxResults=50` +
+            `${pageToken ? `&pageToken=${pageToken}` : ""}`;
+
+        return fetch(url, {
+            method: "GET",
+            headers: new Headers({
+                Authorization: "Bearer " + token,
+                Accept: "application/json",
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(
+                        `Error calling youtube/v3/search API: ${response.status} response`,
+                    );
+                }
+                return response.json();
+            })
+            .then(
+                (
+                    data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSearchResource>,
+                ) => {
+                    return {
+                        searchResults: data.items,
+                        nextPageToken: data.nextPageToken,
+                    };
+                },
+            )
+            .catch((error) => {
+                throw error;
+            });
     };
 }

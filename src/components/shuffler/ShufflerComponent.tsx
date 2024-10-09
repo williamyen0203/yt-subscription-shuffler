@@ -10,6 +10,7 @@ export function ShufflerComponent() {
     const [subscriptions, setSubscriptions] = useState<
         GoogleApiYouTubeSubscriptionResource[]
     >([]);
+    const [selectedChannelId, setSelectedChannelId] = useState<string>();
 
     // fetched subscriptions
     const [subscriptionIdToNameMap, setSubscriptionIdToNameMap] = useState(
@@ -74,76 +75,31 @@ export function ShufflerComponent() {
     const onRandomVideoClick = () => {
         const randomSubscription =
             subscriptions[Math.floor(Math.random() * subscriptions.length)];
+
+        const randomChannelId = randomSubscription.snippet.resourceId.channelId;
+        setSelectedChannelId(randomChannelId);
+
+        // TODO: Put in do/while
+        gapiClient
+            .fetchVideos(token, randomChannelId!)
+            .then((searchResults) => {
+                const randomVideoId =
+                    searchResults.searchResults[
+                        Math.floor(Math.random() * subscriptions.length)
+                    ].id.videoId;
+                const videoUrl = `https://www.youtube.com/watch?v=${randomVideoId}`;
+                redirectToUrl(videoUrl);
+            })
+            .catch((error) => {
+                setError(error.message);
+            });
     };
 
-    const callApi = async () => {
-        // let nextPageToken = null;
-        // // get all subscriptions
-        // do {
-        //     const subscriptionData: any = await gapi.client.request({
-        //         path:
-        //             "https://www.googleapis.com/youtube/v3/subscriptions?" +
-        //             "part=snippet" +
-        //             "&mine=true" +
-        //             "&maxResults=50" +
-        //             (nextPageToken == null
-        //                 ? ""
-        //                 : "&pageToken=" + nextPageToken),
-        //     });
-        //     nextPageToken = subscriptionData.result.nextPageToken;
-        //     subscriptionData.result.items.forEach((item: any) => {
-        //         setSubscriptionIdToNameMap(
-        //             new Map(
-        //                 subscriptionIdToNameMap.set(
-        //                     item.snippet.resourceId.channelId,
-        //                     item.snippet.title,
-        //                 ),
-        //             ),
-        //         );
-        //     });
-        // } while (nextPageToken != null);
-        // // pick random channel
-        // const subscriptionIdsAsArray = Array.from(
-        //     subscriptionIdToNameMap.keys(),
-        // );
-        // const randomSubscriptionId =
-        //     subscriptionIdsAsArray[
-        //         Math.floor(Math.random() * subscriptionIdsAsArray.length)
-        //     ];
-        // // setting state is asynchronous and may not be set by the time it's needed
-        // setRandomSubscriptionId(randomSubscriptionId);
-        // // get videos from channel
-        // do {
-        //     const searchData: any = await gapi.client.request({
-        //         path:
-        //             "https://www.googleapis.com/youtube/v3/search?" +
-        //             "part=id,snippet" +
-        //             "&maxResults=50" +
-        //             "&order=date" +
-        //             "&type=video" +
-        //             "&channelId=" +
-        //             randomSubscriptionId +
-        //             (nextPageToken == null
-        //                 ? ""
-        //                 : "&pageToken=" + nextPageToken),
-        //     });
-        //     nextPageToken = searchData.result.nextPageToken;
-        //     searchData.result.items.forEach((item: any) => {
-        //         setVideoIdToTitleMap(
-        //             new Map(
-        //                 videoIdToTitleMap.set(
-        //                     item.id.videoId,
-        //                     item.snippet.title,
-        //                 ),
-        //             ),
-        //         );
-        //     });
-        // } while (nextPageToken != null);
-        // // pick random video
-        // const videoIdsAsArray = Array.from(videoIdToTitleMap.keys());
-        // const randomVideoId =
-        //     videoIdsAsArray[Math.floor(Math.random() * videoIdsAsArray.length)];
-        // setRandomVideoId(randomVideoId);
+    const redirectToUrl = (url: string) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const activeTab = tabs[0].id;
+            chrome.tabs.update(activeTab!, { url: url });
+        });
     };
 
     return (
@@ -168,10 +124,10 @@ export function ShufflerComponent() {
                         <button onClick={onFetchSubscriptionsClick}>
                             Fetch subscriptions
                         </button>
-
                         <button onClick={onRandomVideoClick}>
                             Random video
                         </button>
+                        selected: {selectedChannelId}
                         {subscriptions.map(
                             (
                                 subscription: GoogleApiYouTubeSubscriptionResource,
