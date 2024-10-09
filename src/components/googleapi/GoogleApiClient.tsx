@@ -51,7 +51,7 @@ export class GoogleApiClient {
         token: string,
         pageToken?: string | null,
     ): Promise<FetchSubscriptionsResponse> => {
-        let url =
+        const url =
             `https://content-youtube.googleapis.com/youtube/v3/subscriptions?` +
             `part=snippet` +
             `&mine=true` +
@@ -93,7 +93,7 @@ export class GoogleApiClient {
         channelId: string,
         pageToken?: string | null,
     ): Promise<FetchSearchResultsResponse> => {
-        let url =
+        const url =
             `https://youtube.googleapis.com/youtube/v3/search?` +
             `part=snippet` +
             `&channelId=${channelId}` +

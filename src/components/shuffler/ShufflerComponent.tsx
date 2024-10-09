@@ -65,34 +65,53 @@ export function ShufflerComponent() {
                 token,
                 nextPageToken,
             );
-            setSubscriptions((prevSubscriptions) =>
-                prevSubscriptions.concat(response.subscriptions),
+            setSubscriptions(
+                (prevSubscriptions) =>
+                    (prevSubscriptions = [
+                        ...prevSubscriptions,
+                        ...response.subscriptions,
+                    ]),
             );
             nextPageToken = response.nextPageToken;
         } while (nextPageToken != null);
     };
 
-    const onRandomVideoClick = () => {
+    const onRandomVideoClick = async () => {
+        // Pick a random channel
         const randomSubscription =
             subscriptions[Math.floor(Math.random() * subscriptions.length)];
-
         const randomChannelId = randomSubscription.snippet.resourceId.channelId;
         setSelectedChannelId(randomChannelId);
 
-        // TODO: Put in do/while
-        gapiClient
-            .fetchVideos(token, randomChannelId!)
-            .then((searchResults) => {
-                const randomVideoId =
-                    searchResults.searchResults[
-                        Math.floor(Math.random() * subscriptions.length)
-                    ].id.videoId;
-                const videoUrl = `https://www.youtube.com/watch?v=${randomVideoId}`;
-                redirectToUrl(videoUrl);
-            })
-            .catch((error) => {
-                setError(error.message);
-            });
+        // Fetch all videos from channel
+        let nextPageToken = null;
+        let channelVideos: GoogleApiYouTubeSearchResource[] = [];
+        do {
+            alert("fetching: " + channelVideos.length);
+            try {
+                const searchResults = await gapiClient.fetchVideos(
+                    token,
+                    randomChannelId,
+                );
+                channelVideos = [
+                    ...channelVideos,
+                    ...searchResults.searchResults,
+                ];
+                nextPageToken = searchResults.nextPageToken;
+            } catch (error) {
+                if (error instanceof Error) {
+                    setError(error.message);
+                }
+            }
+        } while (nextPageToken != null);
+
+        // Pick a random video from channel
+        const randomVideoId =
+            channelVideos[Math.floor(Math.random() * channelVideos.length)].id
+                .videoId;
+        const videoUrl = `https://www.youtube.com/watch?v=${randomVideoId}`;
+
+        redirectToUrl(videoUrl);
     };
 
     const redirectToUrl = (url: string) => {
