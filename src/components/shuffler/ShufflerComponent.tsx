@@ -17,6 +17,8 @@ export function ShufflerComponent(): JSX.Element {
     const [selectedVideo, setSelectedVideo] =
         useState<GoogleApiYouTubeSearchResource>();
 
+    const [showSubscriptionsList, setShowSubscriptionsList] = useState(false);
+
     const gapiClient = new GoogleApiClient();
 
     const onAuthClick = async () => {
@@ -31,14 +33,21 @@ export function ShufflerComponent(): JSX.Element {
     };
 
     useEffect(() => {
-        gapiClient
-            .getSignedInUserEmail()
-            .then((email) => {
-                setUser(email);
-            })
-            .catch((error) => {
-                setError(error.message);
-            });
+        if (token) {
+            gapiClient
+                .getSignedInUserEmail()
+                .then((email) => {
+                    setUser(email);
+                })
+                .catch((error) => {
+                    setError(error.message);
+                });
+        } else {
+            setUser(undefined);
+            setSubscriptions([]);
+            setSelectedChannel(undefined);
+            setSelectedVideo(undefined);
+        }
     }, [token]);
 
     const onSignOutClick = () => {
@@ -46,7 +55,7 @@ export function ShufflerComponent(): JSX.Element {
             gapiClient
                 .signOut(token)
                 .then(() => {
-                    setUser(undefined);
+                    setToken("");
                 })
                 .catch((error) => {
                     setError(error.message);
@@ -64,18 +73,9 @@ export function ShufflerComponent(): JSX.Element {
         let subscriptions: GoogleApiYouTubeSubscriptionResource[] = [];
         do {
             try {
-                const response = await gapiClient.fetchSubscriptions(
-                    token,
-                    nextPageToken,
-                );
+                const response: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource> =
+                    await gapiClient.fetchSubscriptions(token, nextPageToken);
                 subscriptions = [...subscriptions, ...response.items];
-                // setSubscriptions(
-                //     (prevSubscriptions: GoogleApiYouTubeSubscriptionResource[]) =>
-                //         (prevSubscriptions = [
-                //             ...prevSubscriptions,
-                //             ...response.subscriptions,
-                //         ]),
-                // );
                 nextPageToken = response.nextPageToken;
             } catch (e) {
                 if (e instanceof Error) {
@@ -108,7 +108,6 @@ export function ShufflerComponent(): JSX.Element {
         let nextPageToken = null;
         let channelVideos: GoogleApiYouTubeSearchResource[] = [];
         do {
-            console.log("iteration: " + channelVideos.length);
             try {
                 const searchResults = await gapiClient.fetchVideos(
                     token,
@@ -117,9 +116,6 @@ export function ShufflerComponent(): JSX.Element {
 
                 channelVideos = [...channelVideos, ...searchResults.items];
 
-                console.log(
-                    "appended now: " + channelVideos.length + " videos",
-                );
                 nextPageToken = searchResults.nextPageToken;
             } catch (error) {
                 if (error instanceof Error) {
@@ -146,9 +142,7 @@ export function ShufflerComponent(): JSX.Element {
     };
 
     return (
-        <>
-            <h1>Youtube Subscription Shuffler</h1>
-
+        <div className="pt-4 px-2 flex flex-col gap-2">
             {/* TODO: Clear out error */}
             {error && (
                 <>
@@ -156,20 +150,54 @@ export function ShufflerComponent(): JSX.Element {
                 </>
             )}
 
-            {/* Logged in */}
+            <div className="card text-base flex justify-between">
+                {user ? (
+                    <>
+                        <div className="text-left">
+                            <span>Logged in as</span>
+                            <br />
+                            <b>{user}</b>
+                        </div>
+                        <button
+                            className="btn text-right"
+                            onClick={onSignOutClick}
+                        >
+                            Sign out
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <span className="text-left">
+                            You must log in first.
+                        </span>
+                        <button
+                            className="btn text-right"
+                            onClick={onAuthClick}
+                        >
+                            Login
+                        </button>
+                    </>
+                )}
+            </div>
+
             {user && (
                 <>
-                    <div>
-                        <div>Logged in as {user}</div>
-                        <button onClick={onSignOutClick}>Sign out</button>
-                    </div>
-                    <ol>
-                        <button onClick={onFetchSubscriptionsClick}>
+                    <div className="card">
+                        <button
+                            className="btn mr-4"
+                            onClick={onFetchSubscriptionsClick}
+                        >
                             Fetch subscriptions
                         </button>
-                        <button onClick={onRandomVideoClick}>
+                        <button
+                            className="btn"
+                            onClick={onRandomVideoClick}
+                            disabled={subscriptions?.length == 0}
+                        >
                             Random video
                         </button>
+                    </div>
+                    <div className="card">
                         <div>
                             Selected channel:{" "}
                             {selectedChannel?.snippet.resourceId.channelId} -
@@ -178,28 +206,52 @@ export function ShufflerComponent(): JSX.Element {
                         <div>
                             Selected video: {selectedVideo?.snippet.title}
                         </div>
-                        {subscriptions?.map(
-                            (
-                                subscription: GoogleApiYouTubeSubscriptionResource,
-                                i: number,
-                            ) => {
-                                return (
-                                    <li key={`subscription-${i}`}>
-                                        {subscription.snippet.title}
-                                    </li>
-                                );
-                            },
-                        )}
-                    </ol>
+                    </div>
+                    <div className="card">
+                        <div className="">
+                            <h1
+                                className="cursor-pointer mb-4"
+                                onClick={() => {
+                                    setShowSubscriptionsList(
+                                        !showSubscriptionsList,
+                                    );
+                                }}
+                            >
+                                {showSubscriptionsList ? <>▴</> : <>▾</>}{" "}
+                                Subscriptions List ({subscriptions?.length})
+                            </h1>
+                            {showSubscriptionsList && (
+                                <>
+                                    {subscriptions?.length == 0 ? (
+                                        <div>Subscriptions not loaded.</div>
+                                    ) : (
+                                        <ol>
+                                            {subscriptions?.map(
+                                                (
+                                                    subscription: GoogleApiYouTubeSubscriptionResource,
+                                                    i: number,
+                                                ) => {
+                                                    return (
+                                                        <li
+                                                            key={`subscription-${i}`}
+                                                        >
+                                                            {
+                                                                subscription
+                                                                    .snippet
+                                                                    .title
+                                                            }
+                                                        </li>
+                                                    );
+                                                },
+                                            )}
+                                        </ol>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </>
             )}
-
-            {/* Not logged in */}
-            {!user && (
-                <>
-                    <button onClick={onAuthClick}>Login</button>
-                </>
-            )}
-        </>
+        </div>
     );
 }
