@@ -1,32 +1,23 @@
-import React from "react";
+import React, { useEffect } from "react";
 import shufflerStyles from "./shufflerStyles.module.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GoogleApiClient } from "../googleapi/GoogleApiClient";
+import useChromeStorage from "../hooks/UseChromeStorage";
 
-export function ShufflerComponent() {
+export function ShufflerComponent(): JSX.Element {
     const [error, setError] = useState<string>();
     const [user, setUser] = useState<string>();
-    const [token, setToken] = useState<string>("");
-    const [subscriptions, setSubscriptions] = useState<
+    const [token, setToken] = useChromeStorage<string>("oauthToken", "d");
+    const [subscriptions, setSubscriptions] = useChromeStorage<
         GoogleApiYouTubeSubscriptionResource[]
-    >([]);
-    const [selectedChannelId, setSelectedChannelId] = useState<string>();
+    >("subscriptions", []);
 
-    // fetched subscriptions
-    const [subscriptionIdToNameMap, setSubscriptionIdToNameMap] = useState(
-        new Map<string, string>(),
-    );
-    const [randomSubscriptionId, setRandomSubscriptionId] = useState("");
-
-    // fetched videos
-    const [videoIdToTitleMap, setVideoIdToTitleMap] = useState(
-        new Map<string, string>(),
-    );
-    const [randomVideoId, setRandomVideoId] = useState("");
+    const [selectedChannel, setSelectedChannel] =
+        useState<GoogleApiYouTubeSubscriptionResource>();
+    const [selectedVideo, setSelectedVideo] =
+        useState<GoogleApiYouTubeSearchResource>();
 
     const gapiClient = new GoogleApiClient();
-
-    useEffect(() => {}, []);
 
     const onAuthClick = async () => {
         gapiClient
@@ -37,6 +28,9 @@ export function ShufflerComponent() {
             .catch((error) => {
                 setError(error.message);
             });
+    };
+
+    useEffect(() => {
         gapiClient
             .getSignedInUserEmail()
             .then((email) => {
@@ -45,79 +39,109 @@ export function ShufflerComponent() {
             .catch((error) => {
                 setError(error.message);
             });
-    };
+    }, [token]);
 
     const onSignOutClick = () => {
-        gapiClient
-            .signOut(token)
-            .then(() => {
-                setUser(undefined);
-            })
-            .catch((error) => {
-                setError(error.message);
-            });
+        if (token) {
+            gapiClient
+                .signOut(token)
+                .then(() => {
+                    setUser(undefined);
+                })
+                .catch((error) => {
+                    setError(error.message);
+                });
+        }
     };
 
     const onFetchSubscriptionsClick = async () => {
+        if (!token) {
+            setError("Not logged in");
+            return;
+        }
+
         let nextPageToken = null;
+        let subscriptions: GoogleApiYouTubeSubscriptionResource[] = [];
         do {
-            const response = await gapiClient.fetchSubscriptions(
-                token,
-                nextPageToken,
-            );
-            setSubscriptions(
-                (prevSubscriptions) =>
-                    (prevSubscriptions = [
-                        ...prevSubscriptions,
-                        ...response.subscriptions,
-                    ]),
-            );
-            nextPageToken = response.nextPageToken;
+            try {
+                const response = await gapiClient.fetchSubscriptions(
+                    token,
+                    nextPageToken,
+                );
+                subscriptions = [...subscriptions, ...response.items];
+                // setSubscriptions(
+                //     (prevSubscriptions: GoogleApiYouTubeSubscriptionResource[]) =>
+                //         (prevSubscriptions = [
+                //             ...prevSubscriptions,
+                //             ...response.subscriptions,
+                //         ]),
+                // );
+                nextPageToken = response.nextPageToken;
+            } catch (e) {
+                if (e instanceof Error) {
+                    setError(e.message);
+                }
+            }
         } while (nextPageToken != null);
+
+        setSubscriptions(subscriptions);
     };
 
     const onRandomVideoClick = async () => {
+        if (!token) {
+            return;
+            setError("Not logged in");
+        }
+
+        if (!subscriptions) {
+            setError("Subscriptions not fetched");
+            return;
+        }
+
         // Pick a random channel
         const randomSubscription =
             subscriptions[Math.floor(Math.random() * subscriptions.length)];
+        setSelectedChannel(randomSubscription);
         const randomChannelId = randomSubscription.snippet.resourceId.channelId;
-        setSelectedChannelId(randomChannelId);
 
         // Fetch all videos from channel
         let nextPageToken = null;
         let channelVideos: GoogleApiYouTubeSearchResource[] = [];
         do {
-            alert("fetching: " + channelVideos.length);
+            console.log("iteration: " + channelVideos.length);
             try {
                 const searchResults = await gapiClient.fetchVideos(
                     token,
                     randomChannelId,
                 );
-                channelVideos = [
-                    ...channelVideos,
-                    ...searchResults.searchResults,
-                ];
+
+                channelVideos = [...channelVideos, ...searchResults.items];
+
+                console.log(
+                    "appended now: " + channelVideos.length + " videos",
+                );
                 nextPageToken = searchResults.nextPageToken;
             } catch (error) {
                 if (error instanceof Error) {
                     setError(error.message);
+                    return;
                 }
             }
         } while (nextPageToken != null);
 
         // Pick a random video from channel
-        const randomVideoId =
-            channelVideos[Math.floor(Math.random() * channelVideos.length)].id
-                .videoId;
+        const randomVideo =
+            channelVideos[Math.floor(Math.random() * channelVideos.length)];
+        setSelectedVideo(randomVideo);
+        const randomVideoId = randomVideo.id.videoId;
         const videoUrl = `https://www.youtube.com/watch?v=${randomVideoId}`;
 
-        redirectToUrl(videoUrl);
+        openLinkInNewTab(videoUrl);
     };
 
-    const redirectToUrl = (url: string) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const activeTab = tabs[0].id;
-            chrome.tabs.update(activeTab!, { url: url });
+    const openLinkInNewTab = (url: string) => {
+        chrome.tabs.create({ url: url }, (tab) => {
+            console.log("New tab created: " + tab);
         });
     };
 
@@ -146,8 +170,15 @@ export function ShufflerComponent() {
                         <button onClick={onRandomVideoClick}>
                             Random video
                         </button>
-                        selected: {selectedChannelId}
-                        {subscriptions.map(
+                        <div>
+                            Selected channel:{" "}
+                            {selectedChannel?.snippet.resourceId.channelId} -
+                            {selectedChannel?.snippet.channelTitle}
+                        </div>
+                        <div>
+                            Selected video: {selectedVideo?.snippet.title}
+                        </div>
+                        {subscriptions?.map(
                             (
                                 subscription: GoogleApiYouTubeSubscriptionResource,
                                 i: number,
@@ -169,28 +200,6 @@ export function ShufflerComponent() {
                     <button onClick={onAuthClick}>Login</button>
                 </>
             )}
-
-            {/* <div className={shufflerStyles.authStatus}>
-                {isLoggedIn
-                    ? "You are currently signed in and have granted access to this app."
-                    : "You have not authorized this app or you are signed out."}
-            </div>
-
-            <h2>
-                Picking random video from {subscriptionIdToNameMap.size}{" "}
-                channels: {subscriptionIdToNameMap.get(randomSubscriptionId)}
-            </h2>
-            <h2>
-                Picking random video from channel with {videoIdToTitleMap.size}{" "}
-                videos: {videoIdToTitleMap.get(randomVideoId)}
-            </h2>
-
-            <iframe
-                id="player-iframe"
-                height="600"
-                width="800"
-                src={"https://www.youtube.com/embed/" + randomVideoId}
-            ></iframe> */}
         </>
     );
 }

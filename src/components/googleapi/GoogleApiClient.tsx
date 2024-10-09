@@ -1,13 +1,3 @@
-export interface FetchSubscriptionsResponse {
-    subscriptions: GoogleApiYouTubeSubscriptionResource[];
-    nextPageToken: string;
-}
-
-export interface FetchSearchResultsResponse {
-    searchResults: GoogleApiYouTubeSearchResource[];
-    nextPageToken: string;
-}
-
 export class GoogleApiClient {
     authenticate = (): Promise<string> => {
         return new Promise((resolve, reject) => {
@@ -50,7 +40,9 @@ export class GoogleApiClient {
     fetchSubscriptions = async (
         token: string,
         pageToken?: string | null,
-    ): Promise<FetchSubscriptionsResponse> => {
+    ): Promise<
+        GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>
+    > => {
         const url =
             `https://content-youtube.googleapis.com/youtube/v3/subscriptions?` +
             `part=snippet` +
@@ -67,6 +59,8 @@ export class GoogleApiClient {
         })
             .then((response) => {
                 if (!response.ok) {
+                    console.log("sub resp " + response.statusText);
+                    console.log("sub resp " + response.text);
                     throw new Error(
                         `Error calling youtube/v3/subscriptions API: ${response.status} response`,
                     );
@@ -77,10 +71,11 @@ export class GoogleApiClient {
                 (
                     data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>,
                 ) => {
-                    return {
-                        subscriptions: data.items,
-                        nextPageToken: data.nextPageToken,
-                    };
+                    console.log(
+                        "API youtube/v3/subscriptions response: " +
+                            JSON.stringify(data),
+                    );
+                    return data;
                 },
             )
             .catch((error) => {
@@ -92,14 +87,17 @@ export class GoogleApiClient {
         token: string,
         channelId: string,
         pageToken?: string | null,
-    ): Promise<FetchSearchResultsResponse> => {
+    ): Promise<
+        GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSearchResource>
+    > => {
         const url =
             `https://youtube.googleapis.com/youtube/v3/search?` +
             `part=snippet` +
             `&channelId=${channelId}` +
-            `&type=video` +
+            // `&type=video` +
             `&maxResults=50` +
             `${pageToken ? `&pageToken=${pageToken}` : ""}`;
+        console.log("fetching url " + url);
 
         return fetch(url, {
             method: "GET",
@@ -108,8 +106,10 @@ export class GoogleApiClient {
                 Accept: "application/json",
             }),
         })
-            .then((response) => {
+            .then(async (response) => {
                 if (!response.ok) {
+                    const respText = await response.text();
+                    console.log("error: " + respText);
                     throw new Error(
                         `Error calling youtube/v3/search API: ${response.status} response`,
                     );
@@ -120,10 +120,11 @@ export class GoogleApiClient {
                 (
                     data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSearchResource>,
                 ) => {
-                    return {
-                        searchResults: data.items,
-                        nextPageToken: data.nextPageToken,
-                    };
+                    console.log(
+                        "API youtube/v3/search response: " +
+                            JSON.stringify(data),
+                    );
+                    return data;
                 },
             )
             .catch((error) => {
