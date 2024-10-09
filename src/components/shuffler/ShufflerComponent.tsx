@@ -33,6 +33,14 @@ export function ShufflerComponent(): JSX.Element {
             });
     };
 
+    // Clear out errors after 5 seconds
+    useEffect(() => {
+        setInterval(() => {
+            setError(undefined);
+        }, 5000);
+    }, [error]);
+
+    // Reset state after logging out
     useEffect(() => {
         if (token) {
             gapiClient
@@ -152,9 +160,9 @@ export function ShufflerComponent(): JSX.Element {
     return (
         <div className="py-2 px-2 flex flex-col gap-2">
             {error && (
-                <>
+                <div className="card bg-red-200 text-xs">
                     <b>Error: </b> {error}
-                </>
+                </div>
             )}
 
             <div className="card flex justify-between">
