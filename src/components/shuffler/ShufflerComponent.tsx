@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import shufflerStyles from "./shufflerStyles.module.css";
 import { useState } from "react";
 import { GoogleApiClient } from "../googleapi/GoogleApiClient";
 import useChromeStorage from "../hooks/UseChromeStorage";
+import moment from "moment";
 
 export function ShufflerComponent(): JSX.Element {
     const [error, setError] = useState<string>();
@@ -18,6 +18,7 @@ export function ShufflerComponent(): JSX.Element {
         useState<GoogleApiYouTubeSearchResource>();
 
     const [showSubscriptionsList, setShowSubscriptionsList] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState<Date>();
 
     const gapiClient = new GoogleApiClient();
 
@@ -80,20 +81,27 @@ export function ShufflerComponent(): JSX.Element {
             } catch (e) {
                 if (e instanceof Error) {
                     setError(e.message);
+                    return;
                 }
             }
         } while (nextPageToken != null);
 
         setSubscriptions(subscriptions);
+        setLastUpdated(new Date());
     };
 
     const onRandomVideoClick = async () => {
         if (!token) {
-            return;
             setError("Not logged in");
+            return;
         }
 
-        if (!subscriptions) {
+        // TODO: Handle case where user has no subscriptions
+        if (!subscriptions || subscriptions.length == 0) {
+            onFetchSubscriptionsClick();
+        }
+
+        if (!subscriptions || subscriptions.length == 0) {
             setError("Subscriptions not fetched");
             return;
         }
@@ -142,15 +150,14 @@ export function ShufflerComponent(): JSX.Element {
     };
 
     return (
-        <div className="pt-4 px-2 flex flex-col gap-2">
-            {/* TODO: Clear out error */}
+        <div className="py-2 px-2 flex flex-col gap-2">
             {error && (
                 <>
                     <b>Error: </b> {error}
                 </>
             )}
 
-            <div className="card text-base flex justify-between">
+            <div className="card flex justify-between">
                 {user ? (
                     <>
                         <div className="text-left">
@@ -184,42 +191,78 @@ export function ShufflerComponent(): JSX.Element {
                 <>
                     <div className="card">
                         <button
-                            className="btn mr-4"
-                            onClick={onFetchSubscriptionsClick}
-                        >
-                            Fetch subscriptions
-                        </button>
-                        <button
-                            className="btn"
+                            className="btn shadow-lg block mx-auto mb-8 w-48 border-0 border-red-700 text-red-700 rounded-3xl"
                             onClick={onRandomVideoClick}
-                            disabled={subscriptions?.length == 0}
                         >
-                            Random video
+                            <img
+                                src="icon/icon128.png"
+                                alt="Icon"
+                                className="w-40 h-40"
+                            />{" "}
+                            <h1 className="pb-4">Shuffle</h1>
                         </button>
+                        <div className="mb-2">
+                            <b>Selected channel</b>
+                            <br />
+                            <span className="text-xs">
+                                {selectedChannel
+                                    ? selectedChannel.snippet.resourceId
+                                          .channelId
+                                    : "None"}
+                                {selectedChannel &&
+                                    selectedChannel.snippet.channelTitle}
+                            </span>
+                        </div>
+                        <div>
+                            <b>Selected video</b>
+                            <br />
+                            <span className="text-xs">
+                                {selectedVideo
+                                    ? selectedVideo.snippet.title
+                                    : "None"}
+                            </span>
+                        </div>
                     </div>
                     <div className="card">
                         <div>
-                            Selected channel:{" "}
-                            {selectedChannel?.snippet.resourceId.channelId} -
-                            {selectedChannel?.snippet.channelTitle}
-                        </div>
-                        <div>
-                            Selected video: {selectedVideo?.snippet.title}
-                        </div>
-                    </div>
-                    <div className="card">
-                        <div className="">
-                            <h1
-                                className="cursor-pointer mb-4"
-                                onClick={() => {
-                                    setShowSubscriptionsList(
-                                        !showSubscriptionsList,
-                                    );
-                                }}
-                            >
-                                {showSubscriptionsList ? <>▴</> : <>▾</>}{" "}
-                                Subscriptions List ({subscriptions?.length})
-                            </h1>
+                            <div className="flex justify-between mb-4">
+                                <div
+                                    className="text-left flex flex-row gap-1 cursor-pointer"
+                                    onClick={() => {
+                                        setShowSubscriptionsList(
+                                            !showSubscriptionsList,
+                                        );
+                                    }}
+                                >
+                                    <h1>
+                                        {showSubscriptionsList ? (
+                                            <>▾</>
+                                        ) : (
+                                            <>▸</>
+                                        )}
+                                    </h1>
+                                    <div className="">
+                                        <b className="mb-1">
+                                            Subscriptions List (
+                                            {subscriptions?.length})
+                                        </b>
+                                        <p className="text-gray-600 text-xs">
+                                            Last updated:{" "}
+                                            {lastUpdated
+                                                ? moment(lastUpdated).format(
+                                                      "MM/D/YY h:mm:ss a",
+                                                  )
+                                                : "Never"}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    className="btn text-right"
+                                    onClick={onFetchSubscriptionsClick}
+                                >
+                                    ⟳ Refresh
+                                </button>
+                            </div>
                             {showSubscriptionsList && (
                                 <>
                                     {subscriptions?.length == 0 ? (
