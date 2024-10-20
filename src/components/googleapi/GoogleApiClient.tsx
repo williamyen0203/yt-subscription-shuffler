@@ -38,11 +38,11 @@ export class GoogleApiClient {
     };
 
     fetchSubscriptions = async (
-        token: string,
         pageToken?: string | null,
     ): Promise<
         GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>
     > => {
+        const token = await this.authenticate();
         const url =
             `https://content-youtube.googleapis.com/youtube/v3/subscriptions?` +
             `part=snippet` +
@@ -84,20 +84,19 @@ export class GoogleApiClient {
     };
 
     fetchVideos = async (
-        token: string,
         channelId: string,
         pageToken?: string | null,
     ): Promise<
         GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSearchResource>
     > => {
+        const token = await this.authenticate();
         const url =
             `https://youtube.googleapis.com/youtube/v3/search?` +
             `part=snippet` +
             `&channelId=${channelId}` +
-            // `&type=video` +
+            `&type=video` +
             `&maxResults=50` +
             `${pageToken ? `&pageToken=${pageToken}` : ""}`;
-        console.log("fetching url " + url);
 
         return fetch(url, {
             method: "GET",

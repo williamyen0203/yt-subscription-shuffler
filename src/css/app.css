@@ -11,10 +11,6 @@
     h1 {
         @apply text-xl font-bold;
     }
-
-    p, span {
-        @apply text-sm
-    }
 }
 
 @layer components {

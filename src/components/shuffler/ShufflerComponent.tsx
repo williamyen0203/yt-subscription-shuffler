@@ -83,7 +83,7 @@ export function ShufflerComponent(): JSX.Element {
         do {
             try {
                 const response: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource> =
-                    await gapiClient.fetchSubscriptions(token, nextPageToken);
+                    await gapiClient.fetchSubscriptions(nextPageToken);
                 subscriptions = [...subscriptions, ...response.items];
                 nextPageToken = response.nextPageToken;
             } catch (e) {
@@ -126,8 +126,8 @@ export function ShufflerComponent(): JSX.Element {
         do {
             try {
                 const searchResults = await gapiClient.fetchVideos(
-                    token,
                     randomChannelId,
+                    nextPageToken,
                 );
 
                 channelVideos = [...channelVideos, ...searchResults.items];
