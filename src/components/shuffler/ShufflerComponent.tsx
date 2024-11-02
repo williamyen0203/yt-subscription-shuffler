@@ -1,8 +1,10 @@
-import React, { useEffect } from "react";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GoogleApiClient } from "../googleapi/GoogleApiClient";
 import useChromeStorage from "../hooks/UseChromeStorage";
-import moment from "moment";
+import { LoginComponent } from "./LoginComponent";
+import { ErrorComponent } from "./ErrorComponent";
+import { ShuffleButtonComponent } from "./ShuffleButtonComponent";
+import { SubscriptionListComponent } from "./SubscriptionListComponent";
 
 export function ShufflerComponent(): JSX.Element {
     const [error, setError] = useState<string>();
@@ -25,7 +27,6 @@ export function ShufflerComponent(): JSX.Element {
         GoogleApiYouTubeSearchResource | undefined
     >("selectedVideo", undefined);
 
-    const [showSubscriptionsList, setShowSubscriptionsList] = useState(false);
     const [lastUpdated, setLastUpdated] = useChromeStorage<Date | undefined>(
         "lastUpdatedSubscriptionsDate",
         undefined,
@@ -168,147 +169,32 @@ export function ShufflerComponent(): JSX.Element {
 
     return (
         <div className="py-2 px-2 flex flex-col gap-2">
-            {error && (
-                <div className="card bg-red-200 text-xs">
-                    <b>Error: </b> {error}
-                </div>
-            )}
+            <ErrorComponent error={error} />
 
-            <div className="card flex justify-between">
-                {token ? (
-                    <>
-                        <div className="text-left">
-                            <span>Logged in as</span>
-                            <br />
-                            <b>{user}</b>
-                        </div>
-                        <button
-                            className="btn text-right"
-                            onClick={onSignOutClick}
-                        >
-                            Sign out
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <span className="text-left">
-                            You must log in first.
-                        </span>
-                        <button
-                            className="btn text-right"
-                            onClick={onAuthClick}
-                        >
-                            Login
-                        </button>
-                    </>
-                )}
-            </div>
+            <LoginComponent
+                token={token}
+                user={user}
+                onSignOutClick={onSignOutClick}
+                onAuthClick={onAuthClick}
+            />
 
             {token && (
                 <>
                     <div className="card">
-                        <button
-                            className="btn shadow-lg block mx-auto mb-8 w-48 border-0 border-red-700 text-red-700 rounded-3xl"
-                            onClick={onRandomVideoClick}
-                        >
-                            <img
-                                src="icon/icon128.png"
-                                alt="Icon"
-                                className="w-40 h-40"
-                            />{" "}
-                            <h1 className="pb-4">Shuffle</h1>
-                        </button>
-                        <div className="mb-2">
-                            <b>Selected channel</b>
-                            <br />
-                            <span className="text-xs">
-                                {selectedChannel
-                                    ? selectedChannel.snippet.resourceId
-                                          .channelId
-                                    : "None"}
-                                {selectedChannel &&
-                                    selectedChannel.snippet.channelTitle}
-                            </span>
-                        </div>
-                        <div>
-                            <b>Selected video</b>
-                            <br />
-                            <span className="text-xs">
-                                {selectedVideo
-                                    ? selectedVideo.snippet.title
-                                    : "None"}
-                            </span>
-                        </div>
+                        <ShuffleButtonComponent
+                            selectedChannel={selectedChannel}
+                            selectedVideo={selectedVideo}
+                            onRandomVideoClick={onRandomVideoClick}
+                        />
                     </div>
                     <div className="card">
-                        <div>
-                            <div className="flex justify-between mb-4">
-                                <div
-                                    className="text-left flex flex-row gap-1 cursor-pointer"
-                                    onClick={() => {
-                                        setShowSubscriptionsList(
-                                            !showSubscriptionsList,
-                                        );
-                                    }}
-                                >
-                                    <h1>
-                                        {showSubscriptionsList ? (
-                                            <>▾</>
-                                        ) : (
-                                            <>▸</>
-                                        )}
-                                    </h1>
-                                    <div className="">
-                                        <b className="mb-1">
-                                            Subscriptions List (
-                                            {subscriptions?.length})
-                                        </b>
-                                        <p className="text-gray-600 text-xs">
-                                            Last updated:{" "}
-                                            {lastUpdated
-                                                ? moment(lastUpdated).format(
-                                                      "MM/D/YY h:mm:ss a",
-                                                  )
-                                                : "Never"}
-                                        </p>
-                                    </div>
-                                </div>
-                                <button
-                                    className="btn text-right"
-                                    onClick={onFetchSubscriptionsClick}
-                                >
-                                    ⟳ Refresh
-                                </button>
-                            </div>
-                            {showSubscriptionsList && (
-                                <>
-                                    {subscriptions?.length == 0 ? (
-                                        <div>Subscriptions not loaded.</div>
-                                    ) : (
-                                        <ol>
-                                            {subscriptions?.map(
-                                                (
-                                                    subscription: GoogleApiYouTubeSubscriptionResource,
-                                                    i: number,
-                                                ) => {
-                                                    return (
-                                                        <li
-                                                            key={`subscription-${i}`}
-                                                        >
-                                                            {
-                                                                subscription
-                                                                    .snippet
-                                                                    .title
-                                                            }
-                                                        </li>
-                                                    );
-                                                },
-                                            )}
-                                        </ol>
-                                    )}
-                                </>
-                            )}
-                        </div>
+                        <SubscriptionListComponent
+                            lastUpdated={lastUpdated}
+                            subscriptions={subscriptions}
+                            onFetchSubscriptionsClick={
+                                onFetchSubscriptionsClick
+                            }
+                        />
                     </div>
                 </>
             )}
