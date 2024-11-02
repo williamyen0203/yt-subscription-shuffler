@@ -6,32 +6,32 @@ import moment from "moment";
 
 export function ShufflerComponent(): JSX.Element {
     const [error, setError] = useState<string>();
-    const [user, setUser] = useState<string>();
-    const [token, setToken] = useChromeStorage<string>("oauthToken", "d");
+    const [user, setUser] = useChromeStorage<string | undefined>(
+        "loggedInUser",
+        undefined,
+    );
+    const [token, setToken] = useChromeStorage<string | undefined>(
+        "oauthToken",
+        undefined,
+    );
     const [subscriptions, setSubscriptions] = useChromeStorage<
         GoogleApiYouTubeSubscriptionResource[]
     >("subscriptions", []);
 
-    const [selectedChannel, setSelectedChannel] =
-        useState<GoogleApiYouTubeSubscriptionResource>();
-    const [selectedVideo, setSelectedVideo] =
-        useState<GoogleApiYouTubeSearchResource>();
+    const [selectedChannel, setSelectedChannel] = useChromeStorage<
+        GoogleApiYouTubeSubscriptionResource | undefined
+    >("selectedChannel", undefined);
+    const [selectedVideo, setSelectedVideo] = useChromeStorage<
+        GoogleApiYouTubeSearchResource | undefined
+    >("selectedVideo", undefined);
 
     const [showSubscriptionsList, setShowSubscriptionsList] = useState(false);
-    const [lastUpdated, setLastUpdated] = useState<Date>();
+    const [lastUpdated, setLastUpdated] = useChromeStorage<Date | undefined>(
+        "lastUpdatedSubscriptionsDate",
+        undefined,
+    );
 
     const gapiClient = new GoogleApiClient();
-
-    const onAuthClick = async () => {
-        gapiClient
-            .authenticate()
-            .then((token) => {
-                setToken(token);
-            })
-            .catch((error) => {
-                setError(error.message);
-            });
-    };
 
     // Clear out errors after 5 seconds
     useEffect(() => {
@@ -40,31 +40,36 @@ export function ShufflerComponent(): JSX.Element {
         }, 5000);
     }, [error]);
 
-    // Reset state after logging out
-    useEffect(() => {
-        if (token) {
-            gapiClient
-                .getSignedInUserEmail()
-                .then((email) => {
-                    setUser(email);
-                })
-                .catch((error) => {
-                    setError(error.message);
-                });
-        } else {
-            setUser(undefined);
-            setSubscriptions([]);
-            setSelectedChannel(undefined);
-            setSelectedVideo(undefined);
-        }
-    }, [token]);
+    const onAuthClick = async () => {
+        gapiClient
+            .authenticate()
+            .then((token) => {
+                setToken(token);
+                gapiClient
+                    .getSignedInUserEmail()
+                    .then((email) => {
+                        setUser(email);
+                    })
+                    .catch((error) => {
+                        setError(error.message);
+                    });
+            })
+            .catch((error) => {
+                setError(error.message);
+            });
+    };
 
     const onSignOutClick = () => {
         if (token) {
             gapiClient
                 .signOut(token)
                 .then(() => {
-                    setToken("");
+                    setToken(undefined);
+                    setUser(undefined);
+                    setSubscriptions([]);
+                    setSelectedChannel(undefined);
+                    setSelectedVideo(undefined);
+                    setLastUpdated(undefined);
                 })
                 .catch((error) => {
                     setError(error.message);
@@ -123,12 +128,16 @@ export function ShufflerComponent(): JSX.Element {
         // Fetch all videos from channel
         let nextPageToken = null;
         let channelVideos: GoogleApiYouTubeSearchResource[] = [];
+        const pageLimit = 1;
+        let page = 0;
         do {
+            page++;
             try {
-                const searchResults = await gapiClient.fetchVideos(
-                    randomChannelId,
-                    nextPageToken,
-                );
+                const searchResults: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSearchResource> =
+                    await gapiClient.fetchVideos(
+                        randomChannelId,
+                        nextPageToken,
+                    );
 
                 channelVideos = [...channelVideos, ...searchResults.items];
 
@@ -139,7 +148,7 @@ export function ShufflerComponent(): JSX.Element {
                     return;
                 }
             }
-        } while (nextPageToken != null);
+        } while (nextPageToken != null || page < pageLimit);
 
         // Pick a random video from channel
         const randomVideo =
@@ -166,7 +175,7 @@ export function ShufflerComponent(): JSX.Element {
             )}
 
             <div className="card flex justify-between">
-                {user ? (
+                {token ? (
                     <>
                         <div className="text-left">
                             <span>Logged in as</span>
@@ -195,7 +204,7 @@ export function ShufflerComponent(): JSX.Element {
                 )}
             </div>
 
-            {user && (
+            {token && (
                 <>
                     <div className="card">
                         <button
