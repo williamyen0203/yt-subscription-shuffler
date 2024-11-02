@@ -111,11 +111,11 @@ export function ShufflerComponent(): JSX.Element {
 
         // TODO: Handle case where user has no subscriptions
         if (!subscriptions || subscriptions.length == 0) {
-            onFetchSubscriptionsClick();
+            await onFetchSubscriptionsClick();
         }
 
         if (!subscriptions || subscriptions.length == 0) {
-            setError("Subscriptions not fetched");
+            setError("No subscriptions were fetched.");
             return;
         }
 
@@ -148,7 +148,7 @@ export function ShufflerComponent(): JSX.Element {
                     return;
                 }
             }
-        } while (nextPageToken != null || page < pageLimit);
+        } while (nextPageToken != null && page < pageLimit);
 
         // Pick a random video from channel
         const randomVideo =
