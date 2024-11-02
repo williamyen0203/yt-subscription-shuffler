@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import moment from "moment";
 
 interface SubscriptionListComponentProps {
-    lastUpdated?: Date;
+    lastUpdated?: number;
     subscriptions?: GoogleApiYouTubeSubscriptionResource[];
     onFetchSubscriptionsClick: () => void;
 }

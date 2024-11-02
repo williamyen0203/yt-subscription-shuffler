@@ -1,5 +1,5 @@
 import React from "react";
-import { ShufflerComponent } from "../shuffler/ShufflerComponent";
+import { ShufflerComponent } from "../components/ShufflerComponent";
 import appStyles from "./appStyles.module.css";
 
 export function App() {

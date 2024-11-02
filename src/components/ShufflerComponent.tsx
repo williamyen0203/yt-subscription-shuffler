@@ -27,7 +27,7 @@ export function ShufflerComponent(): JSX.Element {
         GoogleApiYouTubeSearchResource | undefined
     >("selectedVideo", undefined);
 
-    const [lastUpdated, setLastUpdated] = useChromeStorage<Date | undefined>(
+    const [lastUpdated, setLastUpdated] = useChromeStorage<number | undefined>(
         "lastUpdatedSubscriptionsDate",
         undefined,
     );
@@ -101,7 +101,7 @@ export function ShufflerComponent(): JSX.Element {
         } while (nextPageToken != null);
 
         setSubscriptions(subscriptions);
-        setLastUpdated(new Date());
+        setLastUpdated(new Date().getTime());
     };
 
     const onRandomVideoClick = async () => {

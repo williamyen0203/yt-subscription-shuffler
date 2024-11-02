@@ -14,7 +14,7 @@ export function ShuffleButtonComponent(
     return (
         <>
             <button
-                className="btn shadow-lg block mx-auto mb-8 w-48 border-0 border-red-700 text-red-700 rounded-3xl"
+                className="btn shadow-lg block mx-auto mb-8 w-48 border-1 border-red-700 text-red-700 rounded-3xl"
                 onClick={onRandomVideoClick}
             >
                 <img src="icon/icon128.png" alt="Icon" className="w-40 h-40" />{" "}
