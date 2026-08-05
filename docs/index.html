@@ -109,9 +109,10 @@
     <body>
         <nav>
             <span class="brand">Subscription Shuffler</span>
-            <a href="https://github.com/williamyen0203/yt-subscription-shuffler"
-                >GitHub</a
-            >
+            <span>
+                <a href="#features">Features</a>
+                <a href="#privacy" style="margin-left: 1rem">Privacy</a>
+            </span>
         </nav>
 
         <header class="hero container">
@@ -129,14 +130,13 @@
         </header>
 
         <section class="container">
-            <h2>What is Subscription Shuffler?</h2>
+            <h2>Purpose</h2>
             <p>
-                Subscription Shuffler is a Chrome extension whose purpose is to
-                help you rediscover the channels you follow by playing a
-                <strong>random video from your YouTube subscriptions</strong>.
-                Instead of scrolling your subscription feed and only ever
-                catching the newest uploads, you click the extension and it
-                opens a video you might otherwise never see.
+                Subscription Shuffler exists to help you rediscover the channels
+                you already follow. Its sole purpose is to pick a
+                <strong>random video from your YouTube subscription list</strong>
+                and open it, so you can enjoy older uploads you may have missed
+                instead of only ever seeing the newest ones in your feed.
             </p>
             <ul>
                 <li>
@@ -200,6 +200,32 @@
                 Subscription Shuffler is an independent project and is not
                 affiliated with Google LLC. YouTube™ is a trademark of Google
                 LLC.
+            </p>
+        </section>
+
+        <section id="privacy" class="container">
+            <h2>What data does Subscription Shuffler use, and why?</h2>
+            <p>
+                To choose a random video, the extension needs to know which
+                channels you subscribe to, so it asks you to sign in with your
+                Google account. It requests <strong>read-only</strong> access
+                to your YouTube data — just enough to:
+            </p>
+            <ul>
+                <li>read your list of subscriptions,</li>
+                <li>read the video list of the channel that was picked,</li>
+                <li>open the chosen video for you.</li>
+            </ul>
+            <p>
+                It cannot modify your subscriptions, upload anything, or access
+                any other part of your Google account. All requests go directly
+                from your browser to YouTube, and your data is stored only on
+                your own device. The developer does not see, store, or receive
+                any of your data.
+            </p>
+            <p>
+                Read the full details in our
+                <a href="./privacy.html">Privacy Policy</a>.
             </p>
         </section>
 
