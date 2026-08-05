@@ -2,7 +2,8 @@
 // (Credentials > OAuth client ID > Web application) and register the
 // redirect URI https://<extension-id>.chromiumapp.org/ (use
 // chrome.identity.getRedirectURL() to find the exact value).
-const WEB_CLIENT_ID = "REPLACE_WITH_WEB_CLIENT_ID.apps.googleusercontent.com";
+const WEB_CLIENT_ID =
+    "748985382262-goevsfnmccm8p8svmjdmsip8q0f5afb9.apps.googleusercontent.com";
 
 const YOUTUBE_READONLY_SCOPE =
     "https://www.googleapis.com/auth/youtube.readonly";
