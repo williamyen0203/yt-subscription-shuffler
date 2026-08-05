@@ -83,51 +83,54 @@ export class GoogleApiClient {
             });
     };
 
-    fetchVideos = async (
+    fetchChannelUploadsPlaylistId = async (
         channelId: string,
+    ): Promise<string | undefined> => {
+        const url =
+            `https://youtube.googleapis.com/youtube/v3/channels?` +
+            `part=contentDetails` +
+            `&id=${channelId}`;
+
+        const data = await this.fetchJson<
+            GoogleApiYouTubePaginationInfo<GoogleApiYouTubeChannelResource>
+        >(url);
+        return data.items[0]?.contentDetails.relatedPlaylists.uploads;
+    };
+
+    fetchPlaylistItems = async (
+        playlistId: string,
         pageToken?: string | null,
     ): Promise<
-        GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSearchResource>
+        GoogleApiYouTubePaginationInfo<GoogleApiYouTubePlaylistItemResource>
     > => {
-        const token = await this.authenticate();
         const url =
-            `https://youtube.googleapis.com/youtube/v3/search?` +
+            `https://youtube.googleapis.com/youtube/v3/playlistItems?` +
             `part=snippet` +
-            `&channelId=${channelId}` +
-            `&type=video` +
+            `&playlistId=${playlistId}` +
             `&maxResults=50` +
             `${pageToken ? `&pageToken=${pageToken}` : ""}`;
 
-        return fetch(url, {
+        return this.fetchJson<
+            GoogleApiYouTubePaginationInfo<GoogleApiYouTubePlaylistItemResource>
+        >(url);
+    };
+
+    private async fetchJson<T>(url: string): Promise<T> {
+        const token = await this.authenticate();
+        const response = await fetch(url, {
             method: "GET",
             headers: new Headers({
                 Authorization: "Bearer " + token,
                 Accept: "application/json",
             }),
-        })
-            .then(async (response) => {
-                if (!response.ok) {
-                    const respText = await response.text();
-                    console.log("error: " + respText);
-                    throw new Error(
-                        `Error calling youtube/v3/search API: ${response.status} response`,
-                    );
-                }
-                return response.json();
-            })
-            .then(
-                (
-                    data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSearchResource>,
-                ) => {
-                    console.log(
-                        "API youtube/v3/search response: " +
-                            JSON.stringify(data),
-                    );
-                    return data;
-                },
-            )
-            .catch((error) => {
-                throw error;
-            });
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                `YouTube API request failed with ${response.status} response`,
+            );
+        }
+
+        return response.json();
     };
 }

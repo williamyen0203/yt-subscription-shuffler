@@ -2,7 +2,7 @@ import React from "react";
 
 interface ShuffleButtonComponentProps {
     selectedChannel?: GoogleApiYouTubeSubscriptionResource;
-    selectedVideo?: GoogleApiYouTubeSearchResource;
+    selectedVideo?: GoogleApiYouTubePlaylistItemResource;
     onRandomVideoClick: () => void;
 }
 

@@ -24,7 +24,7 @@ export function ShufflerComponent(): JSX.Element {
         GoogleApiYouTubeSubscriptionResource | undefined
     >("selectedChannel", undefined);
     const [selectedVideo, setSelectedVideo] = useChromeStorage<
-        GoogleApiYouTubeSearchResource | undefined
+        GoogleApiYouTubePlaylistItemResource | undefined
     >("selectedVideo", undefined);
 
     const [lastUpdated, setLastUpdated] = useChromeStorage<number | undefined>(
@@ -140,44 +140,62 @@ export function ShufflerComponent(): JSX.Element {
         setSelectedChannel(randomSubscription);
         const randomChannelId = randomSubscription.snippet.resourceId.channelId;
 
-        // Fetch all videos from channel
-        let nextPageToken = null;
-        let channelVideos: GoogleApiYouTubeSearchResource[] = [];
-        const pageLimit = 1;
-        let page = 0;
-        do {
-            page++;
-            try {
-                const searchResults: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSearchResource> =
-                    await gapiClient.fetchVideos(
-                        randomChannelId,
-                        nextPageToken,
-                    );
-
-                channelVideos = [...channelVideos, ...searchResults.items];
-
-                nextPageToken = searchResults.nextPageToken;
-            } catch (error) {
-                if (error instanceof Error) {
-                    setError(error.message);
-                    return;
-                }
+        try {
+            // Fetch the channel's uploads playlist so every video is eligible
+            const uploadsPlaylistId =
+                await gapiClient.fetchChannelUploadsPlaylistId(
+                    randomChannelId,
+                );
+            if (!uploadsPlaylistId) {
+                setError("No uploads found for selected channel.");
+                return;
             }
-        } while (nextPageToken != null && page < pageLimit);
 
-        if (channelVideos.length == 0) {
-            setError("No videos found for selected channel.");
-            return;
+            // Pick a random page, then a random video within that page, so
+            // every video in the channel has an equal chance of being picked
+            const firstPage = await gapiClient.fetchPlaylistItems(
+                uploadsPlaylistId,
+            );
+            const totalPages = Math.max(
+                1,
+                Math.ceil(firstPage.pageInfo.totalResults / 50),
+            );
+            const targetPage = Math.min(
+                Math.floor(Math.random() * totalPages),
+                totalPages - 1,
+            );
+
+            let channelVideos = firstPage.items;
+            let nextPageToken = firstPage.nextPageToken;
+            let currentPage = 0;
+            while (currentPage < targetPage && nextPageToken) {
+                const nextPage = await gapiClient.fetchPlaylistItems(
+                    uploadsPlaylistId,
+                    nextPageToken,
+                );
+                channelVideos = nextPage.items;
+                nextPageToken = nextPage.nextPageToken;
+                currentPage++;
+            }
+
+            if (channelVideos.length == 0) {
+                setError("No videos found for selected channel.");
+                return;
+            }
+
+            // Pick a random video from the channel
+            const randomVideo =
+                channelVideos[Math.floor(Math.random() * channelVideos.length)];
+            setSelectedVideo(randomVideo);
+            const randomVideoId = randomVideo.snippet.resourceId.videoId;
+            const videoUrl = `https://www.youtube.com/watch?v=${randomVideoId}`;
+
+            openLinkInNewTab(videoUrl);
+        } catch (error) {
+            if (error instanceof Error) {
+                setError(error.message);
+            }
         }
-
-        // Pick a random video from channel
-        const randomVideo =
-            channelVideos[Math.floor(Math.random() * channelVideos.length)];
-        setSelectedVideo(randomVideo);
-        const randomVideoId = randomVideo.id.videoId;
-        const videoUrl = `https://www.youtube.com/watch?v=${randomVideoId}`;
-
-        openLinkInNewTab(videoUrl);
     };
 
     const openLinkInNewTab = (url: string) => {
