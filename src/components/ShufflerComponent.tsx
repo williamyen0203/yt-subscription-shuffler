@@ -165,6 +165,11 @@ export function ShufflerComponent(): JSX.Element {
             }
         } while (nextPageToken != null && page < pageLimit);
 
+        if (channelVideos.length == 0) {
+            setError("No videos found for selected channel.");
+            return;
+        }
+
         // Pick a random video from channel
         const randomVideo =
             channelVideos[Math.floor(Math.random() * channelVideos.length)];
