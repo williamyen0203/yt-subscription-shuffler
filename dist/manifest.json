@@ -14,7 +14,8 @@
         "service_worker": "js/backgroundPage.js"
     },
     "host_permissions": [
-        "https:\/\/*/*"
+        "https://www.googleapis.com/*",
+        "https://content-youtube.googleapis.com/*"
     ],
     "oauth2": {
         "client_id": "748985382262-nss135jqs3ve8ubfqegsrcm55nbah29s.apps.googleusercontent.com",
