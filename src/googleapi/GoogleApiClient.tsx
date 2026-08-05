@@ -76,26 +76,12 @@ export class GoogleApiClient {
             .then(async (response) => {
                 if (!response.ok) {
                     const respText = await response.text();
-                    console.log("sub resp " + respText);
+                    console.error("sub resp " + respText);
                     throw new Error(
                         `Error calling youtube/v3/subscriptions API: ${response.status} response`,
                     );
                 }
                 return response.json();
-            })
-            .then(
-                (
-                    data: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource>,
-                ) => {
-                    console.log(
-                        "API youtube/v3/subscriptions response: " +
-                            JSON.stringify(data),
-                    );
-                    return data;
-                },
-            )
-            .catch((error) => {
-                throw error;
             });
     };
 

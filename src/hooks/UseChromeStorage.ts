@@ -28,9 +28,7 @@ const useChromeStorage = <T>(
     // Function to set the stored value
     const setValue = (value: T) => {
         setStoredValue(value);
-        storage.set({ [key]: value }, () => {
-            console.log(`Value for ${key} saved:`, value);
-        });
+        storage.set({ [key]: value });
     };
 
     return [storedValue, setValue];

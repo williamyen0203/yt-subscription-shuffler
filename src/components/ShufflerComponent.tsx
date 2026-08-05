@@ -208,9 +208,7 @@ export function ShufflerComponent(): JSX.Element {
     };
 
     const openLinkInNewTab = (url: string) => {
-        chrome.tabs.create({ url: url }, (tab) => {
-            console.log("New tab created: " + tab);
-        });
+        chrome.tabs.create({ url: url });
     };
 
     return (
