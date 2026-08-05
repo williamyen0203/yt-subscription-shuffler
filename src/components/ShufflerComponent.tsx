@@ -36,9 +36,15 @@ export function ShufflerComponent(): JSX.Element {
 
     // Clear out errors after 5 seconds
     useEffect(() => {
-        setInterval(() => {
+        if (!error) {
+            return;
+        }
+
+        const timeout = setTimeout(() => {
             setError(undefined);
         }, 5000);
+
+        return () => clearTimeout(timeout);
     }, [error]);
 
     const onAuthClick = async () => {
