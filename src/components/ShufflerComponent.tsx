@@ -11,6 +11,7 @@ const gapiClient = new GoogleApiClient();
 
 export function ShufflerComponent(): JSX.Element {
     const [error, setError] = useState<string>();
+    const [isShuffling, setIsShuffling] = useState(false);
     const [user, setUser] = useChromeStorage<string | undefined>(
         "loggedInUser",
         undefined,
@@ -126,25 +127,27 @@ export function ShufflerComponent(): JSX.Element {
             return;
         }
 
-        let currentSubscriptions = subscriptions;
-        if (!currentSubscriptions || currentSubscriptions.length == 0) {
-            currentSubscriptions = await onFetchSubscriptionsClick();
-        }
-
-        if (!currentSubscriptions || currentSubscriptions.length == 0) {
-            setError("No subscriptions were fetched.");
-            return;
-        }
-
-        // Pick a random channel
-        const randomSubscription =
-            currentSubscriptions[
-                Math.floor(Math.random() * currentSubscriptions.length)
-            ];
-        setSelectedChannel(randomSubscription);
-        const randomChannelId = randomSubscription.snippet.resourceId.channelId;
-
+        setIsShuffling(true);
         try {
+            let currentSubscriptions = subscriptions;
+            if (!currentSubscriptions || currentSubscriptions.length == 0) {
+                currentSubscriptions = await onFetchSubscriptionsClick();
+            }
+
+            if (!currentSubscriptions || currentSubscriptions.length == 0) {
+                setError("No subscriptions were fetched.");
+                return;
+            }
+
+            // Pick a random channel
+            const randomSubscription =
+                currentSubscriptions[
+                    Math.floor(Math.random() * currentSubscriptions.length)
+                ];
+            setSelectedChannel(randomSubscription);
+            const randomChannelId =
+                randomSubscription.snippet.resourceId.channelId;
+
             // Fetch the channel's uploads playlist so every video is eligible
             const uploadsPlaylistId =
                 await gapiClient.fetchChannelUploadsPlaylistId(randomChannelId);
@@ -197,6 +200,8 @@ export function ShufflerComponent(): JSX.Element {
             if (error instanceof Error) {
                 setError(error.message);
             }
+        } finally {
+            setIsShuffling(false);
         }
     };
 
@@ -221,6 +226,7 @@ export function ShufflerComponent(): JSX.Element {
                         <ShuffleButtonComponent
                             selectedChannel={selectedChannel}
                             selectedVideo={selectedVideo}
+                            loading={isShuffling}
                             onRandomVideoClick={onRandomVideoClick}
                         />
                     </div>
