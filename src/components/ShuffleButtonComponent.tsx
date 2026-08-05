@@ -29,9 +29,7 @@ export function ShuffleButtonComponent(
                 <b>Selected channel</b>
                 <br />
                 <span className="text-xs">
-                    {selectedChannel
-                        ? selectedChannel.snippet.channelTitle
-                        : "None"}
+                    {selectedChannel ? selectedChannel.snippet.title : "None"}
                 </span>
             </div>
             <div>
