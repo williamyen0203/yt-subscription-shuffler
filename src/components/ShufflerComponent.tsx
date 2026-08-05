@@ -84,30 +84,36 @@ export function ShufflerComponent(): JSX.Element {
         }
     };
 
-    const onFetchSubscriptionsClick = async () => {
+    const onFetchSubscriptionsClick = async (): Promise<
+        GoogleApiYouTubeSubscriptionResource[] | undefined
+    > => {
         if (!token) {
             setError("Not logged in");
-            return;
+            return undefined;
         }
 
         let nextPageToken = null;
-        let subscriptions: GoogleApiYouTubeSubscriptionResource[] = [];
+        let fetchedSubscriptions: GoogleApiYouTubeSubscriptionResource[] = [];
         do {
             try {
                 const response: GoogleApiYouTubePaginationInfo<GoogleApiYouTubeSubscriptionResource> =
                     await gapiClient.fetchSubscriptions(nextPageToken);
-                subscriptions = [...subscriptions, ...response.items];
+                fetchedSubscriptions = [
+                    ...fetchedSubscriptions,
+                    ...response.items,
+                ];
                 nextPageToken = response.nextPageToken;
             } catch (e) {
                 if (e instanceof Error) {
                     setError(e.message);
-                    return;
+                    return undefined;
                 }
             }
         } while (nextPageToken != null);
 
-        setSubscriptions(subscriptions);
+        setSubscriptions(fetchedSubscriptions);
         setLastUpdated(new Date().getTime());
+        return fetchedSubscriptions;
     };
 
     const onRandomVideoClick = async () => {
@@ -116,19 +122,21 @@ export function ShufflerComponent(): JSX.Element {
             return;
         }
 
-        // TODO: Handle case where user has no subscriptions
-        if (!subscriptions || subscriptions.length == 0) {
-            await onFetchSubscriptionsClick();
+        let currentSubscriptions = subscriptions;
+        if (!currentSubscriptions || currentSubscriptions.length == 0) {
+            currentSubscriptions = await onFetchSubscriptionsClick();
         }
 
-        if (!subscriptions || subscriptions.length == 0) {
+        if (!currentSubscriptions || currentSubscriptions.length == 0) {
             setError("No subscriptions were fetched.");
             return;
         }
 
         // Pick a random channel
         const randomSubscription =
-            subscriptions[Math.floor(Math.random() * subscriptions.length)];
+            currentSubscriptions[
+                Math.floor(Math.random() * currentSubscriptions.length)
+            ];
         setSelectedChannel(randomSubscription);
         const randomChannelId = randomSubscription.snippet.resourceId.channelId;
 

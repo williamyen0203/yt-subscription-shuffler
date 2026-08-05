@@ -4,7 +4,9 @@ import moment from "moment";
 interface SubscriptionListComponentProps {
     lastUpdated?: number;
     subscriptions?: GoogleApiYouTubeSubscriptionResource[];
-    onFetchSubscriptionsClick: () => void;
+    onFetchSubscriptionsClick: () => Promise<
+        GoogleApiYouTubeSubscriptionResource[] | undefined
+    >;
 }
 
 export function SubscriptionListComponent(
