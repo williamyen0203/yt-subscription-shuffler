@@ -12,9 +12,19 @@ const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 
 export class GoogleApiClient {
     private accessToken?: string;
+    private expiresAt?: number;
 
     getAccessToken = (): string | undefined => {
         return this.accessToken;
+    };
+
+    getExpiresAt = (): number | undefined => {
+        return this.expiresAt;
+    };
+
+    setAccessToken = (token: string, expiresAt?: number): void => {
+        this.accessToken = token;
+        this.expiresAt = expiresAt;
     };
 
     authenticate = (interactive: boolean): Promise<string> => {
@@ -61,7 +71,14 @@ export class GoogleApiClient {
                         return;
                     }
 
+                    const expiresIn = parseInt(
+                        params.get("expires_in") ?? "",
+                        10,
+                    );
                     this.accessToken = token;
+                    this.expiresAt = Number.isFinite(expiresIn)
+                        ? Date.now() + expiresIn * 1000
+                        : undefined;
                     resolve(token);
                 },
             );
@@ -84,11 +101,15 @@ export class GoogleApiClient {
 
     signOut = (): void => {
         this.accessToken = undefined;
+        this.expiresAt = undefined;
     };
 
     private requireAccessToken = (): string => {
         if (!this.accessToken) {
             throw new Error("Not logged in");
+        }
+        if (this.expiresAt && Date.now() >= this.expiresAt) {
+            throw new Error("Session expired, please log in again");
         }
         return this.accessToken;
     };

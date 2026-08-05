@@ -33,16 +33,50 @@ export function ShufflerComponent(): JSX.Element {
         undefined,
     );
 
-    // Keep the token in memory only. Restore the session silently on popup
-    // open and clear any token that was persisted by older versions of the
-    // extension.
+    // Keep the token in memory only, backed by chrome.storage.session so the
+    // user stays logged in between popup opens without persisting the token to
+    // disk. Restore the session silently on popup open and clear any token
+    // that was persisted by older versions of the extension.
     useEffect(() => {
         chrome.storage.local.remove("oauthToken");
 
-        gapiClient
-            .authenticate(false)
-            .then((cachedToken) => setToken(cachedToken))
-            .catch(() => undefined);
+        const saveTokenToSession = () => {
+            chrome.storage.session.set({
+                oauthToken: gapiClient.getAccessToken(),
+                oauthTokenExpiry: gapiClient.getExpiresAt(),
+            });
+        };
+
+        const restoreToken = (token: string, expiresAt?: number) => {
+            gapiClient.setAccessToken(token, expiresAt);
+            setToken(token);
+        };
+
+        chrome.storage.session.get(
+            ["oauthToken", "oauthTokenExpiry"],
+            (result) => {
+                const storedToken = result.oauthToken as string | undefined;
+                const storedExpiry = result.oauthTokenExpiry as
+                    | number
+                    | undefined;
+
+                if (
+                    storedToken &&
+                    (!storedExpiry || Date.now() < storedExpiry)
+                ) {
+                    restoreToken(storedToken, storedExpiry);
+                    return;
+                }
+
+                gapiClient
+                    .authenticate(false)
+                    .then((token) => {
+                        restoreToken(token, gapiClient.getExpiresAt());
+                        saveTokenToSession();
+                    })
+                    .catch(() => undefined);
+            },
+        );
     }, []);
 
     // Clear out errors after 5 seconds
@@ -63,6 +97,10 @@ export function ShufflerComponent(): JSX.Element {
             .authenticate(true)
             .then((token) => {
                 setToken(token);
+                chrome.storage.session.set({
+                    oauthToken: gapiClient.getAccessToken(),
+                    oauthTokenExpiry: gapiClient.getExpiresAt(),
+                });
                 gapiClient
                     .getSignedInUserEmail()
                     .then((email) => {
@@ -80,6 +118,7 @@ export function ShufflerComponent(): JSX.Element {
     const onSignOutClick = () => {
         if (token) {
             gapiClient.signOut();
+            chrome.storage.session.remove(["oauthToken", "oauthTokenExpiry"]);
             setToken(undefined);
             setUser(undefined);
             setSubscriptions([]);
