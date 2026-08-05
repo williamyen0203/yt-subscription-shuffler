@@ -5,6 +5,7 @@ import { LoginComponent } from "./LoginComponent";
 import { ErrorComponent } from "./ErrorComponent";
 import { ShuffleButtonComponent } from "./ShuffleButtonComponent";
 import { SubscriptionListComponent } from "./SubscriptionListComponent";
+import { ExcludedChannelsComponent } from "./ExcludedChannelsComponent";
 
 // Kept at module scope so the access token it holds survives re-renders.
 const gapiClient = new GoogleApiClient();
@@ -315,6 +316,15 @@ export function ShufflerComponent(): JSX.Element {
                                 onFetchSubscriptionsClick
                             }
                             onExcludeChannel={onExcludeChannelClick}
+                            onRemoveExcludedChannel={
+                                onRemoveExcludedChannelClick
+                            }
+                        />
+                    </div>
+                    <div className="card">
+                        <ExcludedChannelsComponent
+                            subscriptions={subscriptions}
+                            excludedChannelIds={excludedChannelIds}
                             onRemoveExcludedChannel={
                                 onRemoveExcludedChannelClick
                             }
