@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Youtube Subscription Shuffler",
+    "name": "Subscription Shuffler",
     "description": "Play a random video from your list of subscriptions",
     "version": "0.1.0",
     "action": {
