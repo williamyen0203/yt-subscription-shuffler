@@ -11,6 +11,22 @@ export class GoogleApiClient {
         });
     };
 
+    getAuthTokenSilently = (): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            chrome.identity.getAuthToken({ interactive: false }, (token) => {
+                if (chrome.runtime.lastError || !token) {
+                    reject(
+                        chrome.runtime.lastError
+                            ? new Error(chrome.runtime.lastError.message)
+                            : new Error("Not signed in"),
+                    );
+                } else {
+                    resolve(token);
+                }
+            });
+        });
+    };
+
     getSignedInUserEmail = (): Promise<string> => {
         return new Promise((resolve, reject) => {
             chrome.identity.getProfileUserInfo(

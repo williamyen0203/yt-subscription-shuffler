@@ -12,10 +12,7 @@ export function ShufflerComponent(): JSX.Element {
         "loggedInUser",
         undefined,
     );
-    const [token, setToken] = useChromeStorage<string | undefined>(
-        "oauthToken",
-        undefined,
-    );
+    const [token, setToken] = useState<string>();
     const [subscriptions, setSubscriptions] = useChromeStorage<
         GoogleApiYouTubeSubscriptionResource[]
     >("subscriptions", []);
@@ -33,6 +30,18 @@ export function ShufflerComponent(): JSX.Element {
     );
 
     const gapiClient = new GoogleApiClient();
+
+    // Keep the token in memory only, since chrome.identity caches it itself.
+    // Restore the session silently on popup open and clear any token that was
+    // persisted by older versions of the extension.
+    useEffect(() => {
+        chrome.storage.local.remove("oauthToken");
+
+        gapiClient
+            .getAuthTokenSilently()
+            .then((cachedToken) => setToken(cachedToken))
+            .catch(() => {});
+    }, []);
 
     // Clear out errors after 5 seconds
     useEffect(() => {
