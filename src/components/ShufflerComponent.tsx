@@ -6,6 +6,9 @@ import { ErrorComponent } from "./ErrorComponent";
 import { ShuffleButtonComponent } from "./ShuffleButtonComponent";
 import { SubscriptionListComponent } from "./SubscriptionListComponent";
 
+// Kept at module scope so the access token it holds survives re-renders.
+const gapiClient = new GoogleApiClient();
+
 export function ShufflerComponent(): JSX.Element {
     const [error, setError] = useState<string>();
     const [user, setUser] = useChromeStorage<string | undefined>(
@@ -29,16 +32,14 @@ export function ShufflerComponent(): JSX.Element {
         undefined,
     );
 
-    const gapiClient = new GoogleApiClient();
-
-    // Keep the token in memory only, since chrome.identity caches it itself.
-    // Restore the session silently on popup open and clear any token that was
-    // persisted by older versions of the extension.
+    // Keep the token in memory only. Restore the session silently on popup
+    // open and clear any token that was persisted by older versions of the
+    // extension.
     useEffect(() => {
         chrome.storage.local.remove("oauthToken");
 
         gapiClient
-            .getAuthTokenSilently()
+            .authenticate(false)
             .then((cachedToken) => setToken(cachedToken))
             .catch(() => undefined);
     }, []);
@@ -58,7 +59,7 @@ export function ShufflerComponent(): JSX.Element {
 
     const onAuthClick = async () => {
         gapiClient
-            .authenticate()
+            .authenticate(true)
             .then((token) => {
                 setToken(token);
                 gapiClient
@@ -77,19 +78,13 @@ export function ShufflerComponent(): JSX.Element {
 
     const onSignOutClick = () => {
         if (token) {
-            gapiClient
-                .signOut(token)
-                .then(() => {
-                    setToken(undefined);
-                    setUser(undefined);
-                    setSubscriptions([]);
-                    setSelectedChannel(undefined);
-                    setSelectedVideo(undefined);
-                    setLastUpdated(undefined);
-                })
-                .catch((error) => {
-                    setError(error.message);
-                });
+            gapiClient.signOut();
+            setToken(undefined);
+            setUser(undefined);
+            setSubscriptions([]);
+            setSelectedChannel(undefined);
+            setSelectedVideo(undefined);
+            setLastUpdated(undefined);
         }
     };
 
