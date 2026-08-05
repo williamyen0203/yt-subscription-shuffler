@@ -33,6 +33,10 @@ export function ShufflerComponent(): JSX.Element {
         undefined,
     );
 
+    const [excludedChannelIds, setExcludedChannelIds] = useChromeStorage<
+        string[]
+    >("excludedChannelIds", []);
+
     // Keep the token in memory only, backed by chrome.storage.session so the
     // user stays logged in between popup opens without persisting the token to
     // disk. Restore the session silently on popup open and clear any token
@@ -125,7 +129,20 @@ export function ShufflerComponent(): JSX.Element {
             setSelectedChannel(undefined);
             setSelectedVideo(undefined);
             setLastUpdated(undefined);
+            setExcludedChannelIds([]);
         }
+    };
+
+    const onExcludeChannelClick = (channelId: string) => {
+        if (!excludedChannelIds?.includes(channelId)) {
+            setExcludedChannelIds([...(excludedChannelIds ?? []), channelId]);
+        }
+    };
+
+    const onRemoveExcludedChannelClick = (channelId: string) => {
+        setExcludedChannelIds(
+            (excludedChannelIds ?? []).filter((id) => id !== channelId),
+        );
     };
 
     const onFetchSubscriptionsClick = async (): Promise<
@@ -178,11 +195,26 @@ export function ShufflerComponent(): JSX.Element {
                 return;
             }
 
+            // Drop excluded channels from the shuffle pool
+            let shufflePool = currentSubscriptions;
+            if (excludedChannelIds && excludedChannelIds.length > 0) {
+                shufflePool = currentSubscriptions.filter(
+                    (subscription) =>
+                        !excludedChannelIds.includes(
+                            subscription.snippet.resourceId.channelId,
+                        ),
+                );
+            }
+            if (shufflePool.length == 0) {
+                setError(
+                    "All subscriptions are excluded. Un-exclude some to shuffle.",
+                );
+                return;
+            }
+
             // Pick a random channel
             const randomSubscription =
-                currentSubscriptions[
-                    Math.floor(Math.random() * currentSubscriptions.length)
-                ];
+                shufflePool[Math.floor(Math.random() * shufflePool.length)];
             setSelectedChannel(randomSubscription);
             const randomChannelId =
                 randomSubscription.snippet.resourceId.channelId;
@@ -266,6 +298,11 @@ export function ShufflerComponent(): JSX.Element {
                             selectedChannel={selectedChannel}
                             selectedVideo={selectedVideo}
                             loading={isShuffling}
+                            excludedChannelIds={excludedChannelIds}
+                            onExcludeChannel={onExcludeChannelClick}
+                            onRemoveExcludedChannel={
+                                onRemoveExcludedChannelClick
+                            }
                             onRandomVideoClick={onRandomVideoClick}
                         />
                     </div>
@@ -273,8 +310,13 @@ export function ShufflerComponent(): JSX.Element {
                         <SubscriptionListComponent
                             lastUpdated={lastUpdated}
                             subscriptions={subscriptions}
+                            excludedChannelIds={excludedChannelIds}
                             onFetchSubscriptionsClick={
                                 onFetchSubscriptionsClick
+                            }
+                            onExcludeChannel={onExcludeChannelClick}
+                            onRemoveExcludedChannel={
+                                onRemoveExcludedChannelClick
                             }
                         />
                     </div>
