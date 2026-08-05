@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Privacy Policy — Subscription Shuffler</title>        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, Helvetica, Arial, sans-serif;
+                line-height: 1.6;
+                color: #1f2937;
+                max-width: 720px;
+                margin: 0 auto;
+                padding: 2rem 1.5rem 4rem;
+            }
+            h1 {
+                font-size: 1.75rem;
+                margin-bottom: 0.25rem;
+            }
+            h2 {
+                font-size: 1.15rem;
+                margin-top: 2rem;
+            }
+            .meta {
+                color: #6b7280;
+                font-size: 0.9rem;
+                margin-bottom: 2rem;
+            }
+            code {
+                background: #f3f4f6;
+                padding: 0.1rem 0.3rem;
+                border-radius: 4px;
+                font-size: 0.9em;
+            }
+            ul {
+                padding-left: 1.25rem;
+            }
+            li {
+                margin-bottom: 0.5rem;
+            }
+        </style>
+    </head>
+    <body>
+        <p>
+            <a href="./">← Back to Subscription Shuffler</a>
+        </p>
+        <h1>Privacy Policy</h1>
+        <p class="meta">
+            Subscription Shuffler — Effective date: August 5, 2026
+        </p>
+
+        <p>
+            Subscription Shuffler is a Chrome extension that plays a
+            random video from your list of YouTube subscriptions. The developer
+            does not operate any servers and does not collect, store, or
+            transmit any of your personal data. All data stays on your own
+            device and is exchanged only with Google.
+        </p>
+
+        <p>
+            Subscription Shuffler is an independent project and is not
+            affiliated with Google LLC. YouTube™ is a trademark of Google LLC.
+        </p>
+
+        <h2>1. Data the extension accesses</h2>
+        <ul>
+            <li>
+                <strong>Your YouTube subscriptions and videos</strong> — read
+                from the YouTube Data API v3 using the
+                <code>youtube.readonly</code> scope, to display your
+                subscription list and pick a random video to play.
+            </li>
+            <li>
+                <strong>Your Google account email</strong> — read locally via
+                <code>chrome.identity</code> to show which account you are
+                signed in as.
+            </li>
+        </ul>
+
+        <h2>2. Where data is stored</h2>
+        <ul>
+            <li>
+                <strong>OAuth access token</strong> — stored in
+                <code>chrome.storage.session</code> on your device. It is
+                cleared when you sign out of the extension.
+            </li>
+            <li>
+                <strong>Excluded channels list</strong> — stored in
+                <code>chrome.storage.local</code> on your device. It persists
+                until you re-include the channels or uninstall the extension.
+            </li>
+        </ul>
+
+        <h2>3. Data transmitted</h2>
+        <ul>
+            <li>
+                Requests go directly from your browser to Google's YouTube Data
+                API v3. There is no server owned by the developer.
+            </li>
+            <li>
+                The developer never receives, sells, shares, or uses your data
+                for advertising or any other purpose.
+            </li>
+        </ul>
+
+        <h2>4. Permissions</h2>
+        <p>
+            The extension requests the following Chrome permissions, which are
+            used strictly for the features described above:
+        </p>
+        <ul>
+            <li>
+                <code>storage</code> — store the excluded-channels list and the
+                session access token.
+            </li>
+            <li>
+                <code>identity</code> / <code>identity.email</code> — sign in
+                with your Google account.
+            </li>
+            <li>
+                Host access to <code>*.googleapis.com</code> — call the YouTube
+                Data API.
+            </li>
+        </ul>
+
+        <h2>5. Your control</h2>
+        <ul>
+            <li>
+                Sign out of the extension to clear your access token.
+            </li>
+            <li>
+                Remove the extension to delete all data it stored on your
+                device.
+            </li>
+        </ul>
+
+        <h2>6. Contact</h2>
+        <p>
+            If you have questions about this policy, please open an issue at
+            <a href="https://github.com/williamyen0203/yt-subscription-shuffler/issues"
+                >github.com/williamyen0203/yt-subscription-shuffler</a
+            >.
+        </p>
+    </body>
+</html>

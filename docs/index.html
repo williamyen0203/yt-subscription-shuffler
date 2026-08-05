@@ -3,141 +3,182 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Privacy Policy — Subscription Shuffler</title>
+        <title>Subscription Shuffler — Play a random video from your subscriptions</title>
+        <meta
+            name="description"
+            content="Subscription Shuffler is a Chrome extension that plays a random video from your YouTube subscriptions."
+        />
         <style>
+            * {
+                box-sizing: border-box;
+            }
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
                     Roboto, Helvetica, Arial, sans-serif;
                 line-height: 1.6;
                 color: #1f2937;
+                margin: 0;
+            }
+            .container {
                 max-width: 720px;
                 margin: 0 auto;
-                padding: 2rem 1.5rem 4rem;
+                padding: 0 1.5rem;
             }
-            h1 {
-                font-size: 1.75rem;
-                margin-bottom: 0.25rem;
+            nav {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem 1.5rem;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            nav .brand {
+                font-weight: 700;
+                color: #1f2937;
+                text-decoration: none;
+            }
+            nav a {
+                color: #4b5563;
+                text-decoration: none;
+            }
+            header.hero {
+                padding: 4rem 0 2.5rem;
+                text-align: center;
+            }
+            header.hero h1 {
+                font-size: 2.25rem;
+                margin: 0 0 0.75rem;
+            }
+            header.hero p {
+                font-size: 1.1rem;
+                color: #4b5563;
+                margin: 0 auto 1.5rem;
+                max-width: 30rem;
+            }
+            .btn {
+                display: inline-block;
+                background: #ef4444;
+                color: #fff;
+                font-weight: 600;
+                padding: 0.7rem 1.5rem;
+                border-radius: 8px;
+                text-decoration: none;
+            }
+            .btn:hover {
+                background: #dc2626;
+            }
+            section {
+                padding: 2rem 0;
             }
             h2 {
-                font-size: 1.15rem;
-                margin-top: 2rem;
+                font-size: 1.5rem;
             }
-            .meta {
+            .feature-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+                margin-top: 1.5rem;
+            }
+            .feature {
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                padding: 1.25rem;
+            }
+            .feature h3 {
+                margin: 0 0 0.5rem;
+                font-size: 1.05rem;
+            }
+            .feature p {
+                margin: 0;
+                color: #4b5563;
+                font-size: 0.95rem;
+            }
+            .muted {
                 color: #6b7280;
                 font-size: 0.9rem;
-                margin-bottom: 2rem;
             }
-            code {
-                background: #f3f4f6;
-                padding: 0.1rem 0.3rem;
-                border-radius: 4px;
-                font-size: 0.9em;
+            footer {
+                border-top: 1px solid #e5e7eb;
+                padding: 1.5rem 0 2.5rem;
+                text-align: center;
             }
-            ul {
-                padding-left: 1.25rem;
-            }
-            li {
-                margin-bottom: 0.5rem;
+            footer a {
+                color: #4b5563;
             }
         </style>
     </head>
     <body>
-        <h1>Privacy Policy</h1>
-        <p class="meta">
-            Subscription Shuffler — Effective date: August 5, 2026
-        </p>
+        <nav>
+            <span class="brand">Subscription Shuffler</span>
+            <a href="https://github.com/williamyen0203/yt-subscription-shuffler"
+                >GitHub</a
+            >
+        </nav>
 
-        <p>
-            Subscription Shuffler is a Chrome extension that plays a
-            random video from your list of YouTube subscriptions. The developer
-            does not operate any servers and does not collect, store, or
-            transmit any of your personal data. All data stays on your own
-            device and is exchanged only with Google.
-        </p>
+        <header class="hero container">
+            <h1>Never doomscroll your feed again.</h1>
+            <p>
+                Subscription Shuffler is a Chrome extension that plays a random
+                video from your YouTube subscriptions — one click, straight into
+                the video.
+            </p>
+            <a
+                class="btn"
+                href="https://github.com/williamyen0203/yt-subscription-shuffler#readme"
+                >Get the extension</a
+            >
+        </header>
 
-        <p>
-            Subscription Shuffler is an independent project and is not
-            affiliated with Google LLC. YouTube™ is a trademark of Google LLC.
-        </p>
+        <section class="container">
+            <h2>Features</h2>
+            <div class="feature-grid">
+                <div class="feature">
+                    <h3>Truly random</h3>
+                    <p>
+                        Picks a random subscription, then a random video from
+                        that channel's uploads — not just their latest upload.
+                    </p>
+                </div>
+                <div class="feature">
+                    <h3>Your data stays yours</h3>
+                    <p>
+                        Signs in with your own Google account. Subscriptions and
+                        exclusions live only on your device.
+                    </p>
+                </div>
+                <div class="feature">
+                    <h3>Exclude channels</h3>
+                    <p>
+                        Don't want a channel in the rotation? Exclude it with one
+                        click and see the full list anytime.
+                    </p>
+                </div>
+                <div class="feature">
+                    <h3>Lightweight</h3>
+                    <p>
+                        A simple popup that opens the video in a new tab. No
+                        background servers, no tracking.
+                    </p>
+                </div>
+            </div>
+        </section>
 
-        <h2>1. Data the extension accesses</h2>
-        <ul>
-            <li>
-                <strong>Your YouTube subscriptions and videos</strong> — read
-                from the YouTube Data API v3 using the
-                <code>youtube.readonly</code> scope, to display your
-                subscription list and pick a random video to play.
-            </li>
-            <li>
-                <strong>Your Google account email</strong> — read locally via
-                <code>chrome.identity</code> to show which account you are
-                signed in as.
-            </li>
-        </ul>
+        <section class="container">
+            <h2>How it works</h2>
+            <p>
+                After you sign in, the extension reads your subscription list
+                with read-only access, shuffles it, picks a random video from
+                the chosen channel, and opens it for you. Every shuffle is a
+                fair roll — you might land anywhere in a channel's uploads.
+            </p>
+            <p class="muted">
+                Subscription Shuffler is an independent project and is not
+                affiliated with Google LLC. YouTube™ is a trademark of Google
+                LLC.
+            </p>
+        </section>
 
-        <h2>2. Where data is stored</h2>
-        <ul>
-            <li>
-                <strong>OAuth access token</strong> — stored in
-                <code>chrome.storage.session</code> on your device. It is
-                cleared when you sign out of the extension.
-            </li>
-            <li>
-                <strong>Excluded channels list</strong> — stored in
-                <code>chrome.storage.local</code> on your device. It persists
-                until you re-include the channels or uninstall the extension.
-            </li>
-        </ul>
-
-        <h2>3. Data transmitted</h2>
-        <ul>
-            <li>
-                Requests go directly from your browser to Google's YouTube Data
-                API v3. There is no server owned by the developer.
-            </li>
-            <li>
-                The developer never receives, sells, shares, or uses your data
-                for advertising or any other purpose.
-            </li>
-        </ul>
-
-        <h2>4. Permissions</h2>
-        <p>
-            The extension requests the following Chrome permissions, which are
-            used strictly for the features described above:
-        </p>
-        <ul>
-            <li>
-                <code>storage</code> — store the excluded-channels list and the
-                session access token.
-            </li>
-            <li>
-                <code>identity</code> / <code>identity.email</code> — sign in
-                with your Google account.
-            </li>
-            <li>
-                Host access to <code>*.googleapis.com</code> — call the YouTube
-                Data API.
-            </li>
-        </ul>
-
-        <h2>5. Your control</h2>
-        <ul>
-            <li>
-                Sign out of the extension to clear your access token.
-            </li>
-            <li>
-                Remove the extension to delete all data it stored on your
-                device.
-            </li>
-        </ul>
-
-        <h2>6. Contact</h2>
-        <p>
-            If you have questions about this policy, please open an issue at
-            <a href="https://github.com/williamyen0203/yt-subscription-shuffler/issues"
-                >github.com/williamyen0203/yt-subscription-shuffler</a
-            >.
-        </p>
+        <footer class="container">
+            <a href="./privacy.html">Privacy Policy</a>
+        </footer>
     </body>
 </html>
