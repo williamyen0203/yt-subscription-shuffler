@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "description": "Play a random video from your list of subscriptions",
   "main": "index.js",
-  "scripts": {
-    "build": "webpack --config webpack.prod.js",
-    "dev": "webpack -w --config webpack.dev.js",
+    "scripts": {
+        "build": "webpack --config webpack.prod.js",
+        "build:store": "node scripts/build-store.js",
+        "dev": "webpack -w --config webpack.dev.js",
     "test": "jest --config=jest.config.js",
     "lint": "eslint --fix -c ./.eslintrc.js \"src/**/*.ts*\"",
     "prettify": "prettier --write \"src/**/*.ts*\""

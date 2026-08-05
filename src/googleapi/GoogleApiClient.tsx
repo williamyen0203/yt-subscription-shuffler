@@ -1,9 +1,12 @@
-// OAuth 2.0 Web application client ID. Create it in Google Cloud Console
-// (Credentials > OAuth client ID > Web application) and register the
-// redirect URI https://<extension-id>.chromiumapp.org/ (use
+// OAuth 2.0 Web application client ID. The development client is the default;
+// override it for production builds by setting the WEB_CLIENT_ID environment
+// variable (see webpack.common.js and scripts/build-store.js).
+//
+// Create the client in Google Cloud Console (Credentials > OAuth client ID >
+// Web application) and register the redirect URI
+// https://<extension-id>.chromiumapp.org/ (use
 // chrome.identity.getRedirectURL() to find the exact value).
-const WEB_CLIENT_ID =
-    "748985382262-goevsfnmccm8p8svmjdmsip8q0f5afb9.apps.googleusercontent.com";
+const WEB_CLIENT_ID = __WEB_CLIENT_ID__;
 
 const YOUTUBE_READONLY_SCOPE =
     "https://www.googleapis.com/auth/youtube.readonly";
