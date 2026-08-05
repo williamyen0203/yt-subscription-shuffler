@@ -40,7 +40,7 @@ export function ShufflerComponent(): JSX.Element {
         gapiClient
             .getAuthTokenSilently()
             .then((cachedToken) => setToken(cachedToken))
-            .catch(() => {});
+            .catch(() => undefined);
     }, []);
 
     // Clear out errors after 5 seconds
@@ -152,9 +152,7 @@ export function ShufflerComponent(): JSX.Element {
         try {
             // Fetch the channel's uploads playlist so every video is eligible
             const uploadsPlaylistId =
-                await gapiClient.fetchChannelUploadsPlaylistId(
-                    randomChannelId,
-                );
+                await gapiClient.fetchChannelUploadsPlaylistId(randomChannelId);
             if (!uploadsPlaylistId) {
                 setError("No uploads found for selected channel.");
                 return;

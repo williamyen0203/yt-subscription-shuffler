@@ -72,17 +72,16 @@ export class GoogleApiClient {
                 Authorization: "Bearer " + token,
                 Accept: "application/json",
             }),
-        })
-            .then(async (response) => {
-                if (!response.ok) {
-                    const respText = await response.text();
-                    console.error("sub resp " + respText);
-                    throw new Error(
-                        `Error calling youtube/v3/subscriptions API: ${response.status} response`,
-                    );
-                }
-                return response.json();
-            });
+        }).then(async (response) => {
+            if (!response.ok) {
+                const respText = await response.text();
+                console.error("sub resp " + respText);
+                throw new Error(
+                    `Error calling youtube/v3/subscriptions API: ${response.status} response`,
+                );
+            }
+            return response.json();
+        });
     };
 
     fetchChannelUploadsPlaylistId = async (
