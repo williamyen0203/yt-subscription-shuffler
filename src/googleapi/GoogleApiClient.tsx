@@ -43,7 +43,14 @@ export class GoogleApiClient {
             );
 
             chrome.identity.launchWebAuthFlow(
-                { url: url.href, interactive },
+                {
+                    url: url.href,
+                    interactive,
+                    // Don't let the hidden web view load the login/consent
+                    // page during silent auth; fail fast instead.
+                    abortOnLoadForNonInteractive: !interactive,
+                    timeoutMsForNonInteractive: interactive ? undefined : 5000,
+                },
                 (responseUrl) => {
                     if (chrome.runtime.lastError) {
                         reject(new Error(chrome.runtime.lastError.message));
