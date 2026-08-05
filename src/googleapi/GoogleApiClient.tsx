@@ -57,10 +57,10 @@ export class GoogleApiClient {
                 Accept: "application/json",
             }),
         })
-            .then((response) => {
+            .then(async (response) => {
                 if (!response.ok) {
-                    console.log("sub resp " + response.statusText);
-                    console.log("sub resp " + response.text);
+                    const respText = await response.text();
+                    console.log("sub resp " + respText);
                     throw new Error(
                         `Error calling youtube/v3/subscriptions API: ${response.status} response`,
                     );
@@ -132,5 +132,5 @@ export class GoogleApiClient {
         }
 
         return response.json();
-    };
+    }
 }
